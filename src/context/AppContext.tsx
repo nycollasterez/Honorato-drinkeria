@@ -352,67 +352,131 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem(STORAGE_KEYS.STAFF_PINS, JSON.stringify(staffPins));
   }, [staffPins]);
 
-  // Sincronização automática com o MySQL da HostGator
+  // Sincronização em Tempo Real (Garçom <-> Caixa <-> Cozinha/Bar)
   useEffect(() => {
     let isMounted = true;
+    let isSyncingComandas = false;
+    let isFullSyncing = false;
 
-    const syncWithHostgator = async () => {
-      const data = await hostgatorApi.syncAll();
-      if (!isMounted || !data) return;
+    // Canal de sincronização instantânea entre abas no mesmo aparelho
+    const realtimeChannel =
+      typeof window !== 'undefined' && 'BroadcastChannel' in window
+        ? new BroadcastChannel('honorato_realtime_sync')
+        : null;
 
-      // Se o banco MySQL na HostGator estiver recém-criado, envia a semente inicial
-      if (data.products.length === 0 && data.bottles.length === 0) {
-        await hostgatorApi.seedInitial(products, bottles);
-        return;
-      }
-
-      // Atualiza os estados locais com os dados do MySQL
-      if (data.products && data.products.length > 0) setProducts(data.products);
-      if (data.bottles && data.bottles.length > 0) setBottles(data.bottles);
-      if (data.comandas) {
-        setComandas((prevComandas) => {
-          const serverIds = new Set(data.comandas.map((c) => c.id));
-          // Preserva comandas abertas recentemente no dispositivo que ainda estejam em sincronização
-          const pendingLocal = prevComandas.filter((lc) => {
-            if (serverIds.has(lc.id)) return false;
-            const ageMs = Date.now() - new Date(lc.openedAt).getTime();
-            return ageMs < 300000; // 5 minutos de tolerância
-          });
-
-          // Se a comanda existir nos dois, preserva os itens mais recentes
-          const mergedServer = data.comandas.map((serverCmd) => {
-            const localCmd = prevComandas.find((c) => c.id === serverCmd.id);
-            if (!localCmd) return serverCmd;
-            if (localCmd.items.length > serverCmd.items.length) {
-              return { ...serverCmd, items: localCmd.items };
-            }
-            return serverCmd;
-          });
-
-          return [...pendingLocal, ...mergedServer];
+    // Helper de unificação e merge inteligente de comandas
+    const mergeComandasData = (serverComandas: Comanda[]) => {
+      setComandas((prevComandas) => {
+        const serverIds = new Set(serverComandas.map((c) => c.id));
+        // Preserva comandas locais recentes (criadas há menos de 5 min) que ainda estejam em trânsito
+        const pendingLocal = prevComandas.filter((lc) => {
+          if (serverIds.has(lc.id)) return false;
+          const ageMs = Date.now() - new Date(lc.openedAt).getTime();
+          return ageMs < 300000;
         });
-      }
-      if (data.transactions && data.transactions.length > 0) {
-        setTransactions((prevTx) => {
-          const serverTxIds = new Set(data.transactions.map((t) => t.id));
-          const localOnly = prevTx.filter((t) => !serverTxIds.has(t.id));
-          return [...localOnly, ...data.transactions];
+
+        // Se a comanda existir no servidor e localmente, mantém os itens mais recentes
+        const mergedServer = serverComandas.map((serverCmd) => {
+          const localCmd = prevComandas.find((c) => c.id === serverCmd.id);
+          if (!localCmd) return serverCmd;
+          if (localCmd.items.length > serverCmd.items.length) {
+            return { ...serverCmd, items: localCmd.items };
+          }
+          return serverCmd;
         });
-      }
-      if (data.cashRegister && (data.cashRegister.isOpen || data.cashRegister.totalRevenue > 0)) {
-        setCashRegister(data.cashRegister);
-      }
-      if (data.closingReports && data.closingReports.length > 0) setClosingReports(data.closingReports);
-      if (data.staffPins) setStaffPins((prev) => ({ ...prev, ...data.staffPins }));
+
+        return [...pendingLocal, ...mergedServer];
+      });
     };
 
-    syncWithHostgator();
+    // 1. Polling Rápido de Comandas (A cada 2.5 segundos para tempo real real no Garçom e Caixa)
+    const syncComandasFast = async () => {
+      if (isSyncingComandas || !isMounted) return;
+      isSyncingComandas = true;
+      try {
+        const remoteComandas = await hostgatorApi.getComandas();
+        if (isMounted && remoteComandas && Array.isArray(remoteComandas)) {
+          mergeComandasData(remoteComandas);
+        }
+      } catch (e) {
+        // Fallback silencioso
+      } finally {
+        isSyncingComandas = false;
+      }
+    };
 
-    // Sincroniza a cada 20 segundos para manter múltiplos celulares/computadores alinhados
-    const interval = setInterval(syncWithHostgator, 20000);
+    // 2. Sincronização Completa (Produtos, Garrafas, Caixa e PINs)
+    const syncWithHostgator = async () => {
+      if (isFullSyncing || !isMounted) return;
+      isFullSyncing = true;
+      try {
+        const data = await hostgatorApi.syncAll();
+        if (!isMounted || !data) return;
+
+        // Se o banco MySQL na HostGator estiver recém-criado, envia a semente inicial
+        if (data.products.length === 0 && data.bottles.length === 0) {
+          await hostgatorApi.seedInitial(products, bottles);
+          return;
+        }
+
+        // Atualiza os estados locais com os dados do MySQL
+        if (data.products && data.products.length > 0) setProducts(data.products);
+        if (data.bottles && data.bottles.length > 0) setBottles(data.bottles);
+        if (data.comandas) mergeComandasData(data.comandas);
+
+        if (data.transactions && data.transactions.length > 0) {
+          setTransactions((prevTx) => {
+            const serverTxIds = new Set(data.transactions.map((t) => t.id));
+            const localOnly = prevTx.filter((t) => !serverTxIds.has(t.id));
+            return [...localOnly, ...data.transactions];
+          });
+        }
+        if (data.cashRegister && (data.cashRegister.isOpen || data.cashRegister.totalRevenue > 0)) {
+          setCashRegister(data.cashRegister);
+        }
+        if (data.closingReports && data.closingReports.length > 0) setClosingReports(data.closingReports);
+        if (data.staffPins) setStaffPins((prev) => ({ ...prev, ...data.staffPins }));
+      } finally {
+        isFullSyncing = false;
+      }
+    };
+
+    // Executa a primeira carga completa de imediato
+    syncWithHostgator();
+    syncComandasFast();
+
+    // Sincroniza comandas a cada 2.5 segundos (tempo real contínuo sem precisar atualizar a página)
+    const fastInterval = setInterval(syncComandasFast, 2500);
+
+    // Sincronização geral de estoque e caixa a cada 15 segundos
+    const fullInterval = setInterval(syncWithHostgator, 15000);
+
+    // Quando o usuário volta à aba ou desbloqueia o celular, sincroniza imediatamente
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        syncComandasFast();
+        syncWithHostgator();
+      }
+    };
+    window.addEventListener('focus', handleVisibility);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Escuta notificações de outras abas no mesmo navegador
+    if (realtimeChannel) {
+      realtimeChannel.onmessage = () => {
+        syncComandasFast();
+      };
+    }
+
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      clearInterval(fastInterval);
+      clearInterval(fullInterval);
+      window.removeEventListener('focus', handleVisibility);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      if (realtimeChannel) {
+        realtimeChannel.close();
+      }
     };
   }, []);
 
@@ -488,6 +552,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const notifyRealtimeChange = () => {
+    try {
+      if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        const ch = new BroadcastChannel('honorato_realtime_sync');
+        ch.postMessage({ type: 'sync_now' });
+        ch.close();
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
+
   // Comanda actions
   const openComanda = (identifier: string, customerName?: string, notes?: string): Comanda => {
     const maxNum = comandas.reduce((acc, c) => (c.number > acc ? c.number : acc), 0);
@@ -506,9 +582,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setComandas((prev) => [newComanda, ...prev]);
     setSelectedComandaId(newComanda.id);
+    notifyRealtimeChange();
 
     // Sync com HostGator MySQL
-    hostgatorApi.openComanda(newComanda).catch((err) => {
+    hostgatorApi.openComanda(newComanda).then(() => {
+      notifyRealtimeChange();
+    }).catch((err) => {
       console.warn('HostGator offline/fallback:', err);
     });
 
@@ -571,8 +650,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       deductDrinkIngredientsFromBottles(targetProduct.recipeIngredients, quantity);
     }
 
+    notifyRealtimeChange();
+
     // Sync com HostGator MySQL
-    hostgatorApi.addItemToComanda(comandaId, newItem).catch((err) => {
+    hostgatorApi.addItemToComanda(comandaId, newItem).then(() => {
+      notifyRealtimeChange();
+    }).catch((err) => {
       console.warn('HostGator offline/fallback:', err);
     });
   };
@@ -603,8 +686,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
+    notifyRealtimeChange();
+
     // Sync com HostGator MySQL
-    hostgatorApi.removeItemFromComanda(comandaId, itemId).catch((err) => {
+    hostgatorApi.removeItemFromComanda(comandaId, itemId).then(() => {
+      notifyRealtimeChange();
+    }).catch((err) => {
       console.warn('HostGator offline/fallback:', err);
     });
   };
@@ -617,7 +704,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
-    hostgatorApi.updateComandaStatus(comandaId, status).catch((err) => {
+    notifyRealtimeChange();
+
+    hostgatorApi.updateComandaStatus(comandaId, status).then(() => {
+      notifyRealtimeChange();
+    }).catch((err) => {
       console.warn('HostGator offline/fallback:', err);
     });
   };
@@ -632,7 +723,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
-    hostgatorApi.toggleServiceCharge(comandaId, nextState).catch((err) => {
+    notifyRealtimeChange();
+
+    hostgatorApi.toggleServiceCharge(comandaId, nextState).then(() => {
+      notifyRealtimeChange();
+    }).catch((err) => {
       console.warn('HostGator offline/fallback:', err);
     });
   };
@@ -746,8 +841,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       };
     });
 
+    notifyRealtimeChange();
+
     // Sync com HostGator MySQL
-    hostgatorApi.closeComandaAndPay(comandaId, paymentMethod, paymentSplits, amountReceived).catch((err) => {
+    hostgatorApi.closeComandaAndPay(comandaId, paymentMethod, paymentSplits, amountReceived).then(() => {
+      notifyRealtimeChange();
+    }).catch((err) => {
       console.warn('HostGator offline/fallback:', err);
     });
   };

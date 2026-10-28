@@ -80,6 +80,13 @@ export const hostgatorApi = {
   },
 
   /**
+   * Buscar apenas comandas em tempo real (ultra rápido e leve para Garçom e Caixa)
+   */
+  async getComandas(): Promise<Comanda[] | null> {
+    return apiFetch<Comanda[]>('/comandas.php');
+  },
+
+  /**
    * Atualizar PIN de segurança da equipe no MySQL
    */
   async updateStaffPin(role: string, pin: string): Promise<boolean> {
