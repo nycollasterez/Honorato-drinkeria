@@ -369,10 +369,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Atualiza os estados locais com os dados do MySQL
       if (data.products && data.products.length > 0) setProducts(data.products);
       if (data.bottles && data.bottles.length > 0) setBottles(data.bottles);
-      if (data.comandas) setComandas(data.comandas);
-      if (data.transactions) setTransactions(data.transactions);
-      if (data.cashRegister) setCashRegister(data.cashRegister);
-      if (data.closingReports) setClosingReports(data.closingReports);
+      if (data.comandas) {
+        setComandas((prevComandas) => {
+          const serverIds = new Set(data.comandas.map((c) => c.id));
+          // Preserva comandas abertas recentemente no dispositivo que ainda estejam em sincronização
+          const pendingLocal = prevComandas.filter((lc) => {
+            if (serverIds.has(lc.id)) return false;
+            const ageMs = Date.now() - new Date(lc.openedAt).getTime();
+            return ageMs < 300000; // 5 minutos de tolerância
+          });
+
+          // Se a comanda existir nos dois, preserva os itens mais recentes
+          const mergedServer = data.comandas.map((serverCmd) => {
+            const localCmd = prevComandas.find((c) => c.id === serverCmd.id);
+            if (!localCmd) return serverCmd;
+            if (localCmd.items.length > serverCmd.items.length) {
+              return { ...serverCmd, items: localCmd.items };
+            }
+            return serverCmd;
+          });
+
+          return [...pendingLocal, ...mergedServer];
+        });
+      }
+      if (data.transactions && data.transactions.length > 0) {
+        setTransactions((prevTx) => {
+          const serverTxIds = new Set(data.transactions.map((t) => t.id));
+          const localOnly = prevTx.filter((t) => !serverTxIds.has(t.id));
+          return [...localOnly, ...data.transactions];
+        });
+      }
+      if (data.cashRegister && (data.cashRegister.isOpen || data.cashRegister.totalRevenue > 0)) {
+        setCashRegister(data.cashRegister);
+      }
+      if (data.closingReports && data.closingReports.length > 0) setClosingReports(data.closingReports);
       if (data.staffPins) setStaffPins((prev) => ({ ...prev, ...data.staffPins }));
     };
 

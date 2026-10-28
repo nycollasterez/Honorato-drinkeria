@@ -189,23 +189,68 @@ export const hostgatorApi = {
     return !!res;
   },
 
+  async openSealedBottle(id: string): Promise<boolean> {
+    return this.openNewSealedBottle(id);
+  },
+
   /**
    * Abrir nova comanda
    */
-  async openComanda(identifier: string, customerName?: string, notes?: string): Promise<Comanda | null> {
+  async openComanda(comandaOrIdent: Comanda | string, customerName?: string, notes?: string): Promise<Comanda | null> {
+    let payload: any;
+    if (typeof comandaOrIdent === 'object' && comandaOrIdent !== null) {
+      payload = {
+        action: 'open',
+        id: comandaOrIdent.id,
+        number: comandaOrIdent.number,
+        identifier: comandaOrIdent.identifier,
+        customerName: comandaOrIdent.customerName || '',
+        notes: comandaOrIdent.notes || '',
+        openedAt: comandaOrIdent.openedAt,
+        includeServiceCharge: comandaOrIdent.includeServiceCharge ? 1 : 0,
+        serviceChargePercent: comandaOrIdent.serviceChargePercent || 10,
+      };
+    } else {
+      payload = {
+        action: 'open',
+        identifier: comandaOrIdent,
+        customerName: customerName || '',
+        notes: notes || '',
+      };
+    }
     return apiFetch<Comanda>('/comandas.php', {
       method: 'POST',
-      body: JSON.stringify({ action: 'open', identifier, customerName, notes }),
+      body: JSON.stringify(payload),
     });
   },
 
   /**
    * Lançar item na comanda
    */
-  async addItemToComanda(comandaId: string, productId: string, quantity: number, notes?: string): Promise<boolean> {
+  async addItemToComanda(comandaId: string, itemOrProductId: any, quantity?: number, notes?: string): Promise<boolean> {
+    let payload: any;
+    if (typeof itemOrProductId === 'object' && itemOrProductId !== null) {
+      payload = {
+        action: 'add_item',
+        comandaId,
+        itemId: itemOrProductId.id,
+        productId: itemOrProductId.productId,
+        quantity: itemOrProductId.quantity || 1,
+        notes: itemOrProductId.notes || '',
+        addedAt: itemOrProductId.addedAt,
+      };
+    } else {
+      payload = {
+        action: 'add_item',
+        comandaId,
+        productId: itemOrProductId,
+        quantity: quantity || 1,
+        notes: notes || '',
+      };
+    }
     const res = await apiFetch('/comandas.php', {
       method: 'POST',
-      body: JSON.stringify({ action: 'add_item', comandaId, productId, quantity, notes }),
+      body: JSON.stringify(payload),
     });
     return !!res;
   },
@@ -213,10 +258,12 @@ export const hostgatorApi = {
   /**
    * Remover item da comanda
    */
-  async removeItemFromComanda(itemId: string): Promise<boolean> {
+  async removeItemFromComanda(comandaIdOrItemId: string, maybeItemId?: string): Promise<boolean> {
+    const itemId = maybeItemId || comandaIdOrItemId;
+    const comandaId = maybeItemId ? comandaIdOrItemId : undefined;
     const res = await apiFetch('/comandas.php', {
       method: 'POST',
-      body: JSON.stringify({ action: 'remove_item', itemId }),
+      body: JSON.stringify({ action: 'remove_item', itemId, comandaId }),
     });
     return !!res;
   },
