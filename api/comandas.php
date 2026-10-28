@@ -57,20 +57,29 @@ if ($method === 'POST') {
 
     // 1. Abrir Nova Comanda
     if ($action === 'open') {
-        $identifier = trim($data['identifier'] ?? 'Balcão');
-        $customerName = trim($data['customerName'] ?? '');
-        $notes = trim($data['notes'] ?? '');
+        $id = !empty($data['id']) ? trim($data['id']) : ('cmd-' . round(microtime(true) * 1000));
+        $identifier = is_string($data['identifier'] ?? null)
+            ? trim($data['identifier'])
+            : (is_array($data['identifier'] ?? null) ? trim($data['identifier']['identifier'] ?? 'Balcão') : 'Balcão');
+        $customerName = is_string($data['customerName'] ?? null) ? trim($data['customerName']) : '';
+        $notes = is_string($data['notes'] ?? null) ? trim($data['notes']) : '';
 
-        // Pegar próximo número sequencial
-        $numStmt = $pdo->query("SELECT COALESCE(MAX(number), 0) + 1 AS next_num FROM comandas WHERE DATE(opened_at) = CURDATE()");
-        $nextNum = (int)$numStmt->fetchColumn();
+        // Se o frontend já enviou o número da comanda, usa ele, senão calcula o próximo
+        if (!empty($data['number'])) {
+            $nextNum = (int)$data['number'];
+        } else {
+            $numStmt = $pdo->query("SELECT COALESCE(MAX(number), 0) + 1 AS next_num FROM comandas WHERE DATE(opened_at) = CURDATE()");
+            $nextNum = (int)$numStmt->fetchColumn();
+        }
 
-        $id = 'cmd-' . round(microtime(true) * 1000);
-        $openedAt = date('Y-m-d H:i:s');
+        $openedAt = !empty($data['openedAt']) ? $data['openedAt'] : date('Y-m-d H:i:s');
+        $includeService = isset($data['includeServiceCharge']) ? (int)$data['includeServiceCharge'] : 1;
+        $servicePercent = isset($data['serviceChargePercent']) ? (int)$data['serviceChargePercent'] : 10;
 
         $stmt = $pdo->prepare("INSERT INTO comandas (id, number, identifier, customer_name, status, opened_at, notes, include_service_charge, service_charge_percent)
-            VALUES (?, ?, ?, ?, 'aberta', ?, ?, 1, 10)");
-        $stmt->execute([$id, $nextNum, $identifier, $customerName, $openedAt, $notes]);
+            VALUES (?, ?, ?, ?, 'aberta', ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE identifier = VALUES(identifier), customer_name = VALUES(customer_name), notes = VALUES(notes)");
+        $stmt->execute([$id, $nextNum, $identifier, $customerName, $openedAt, $notes, $includeService, $servicePercent]);
 
         sendResponse([
             'id' => $id,
@@ -80,8 +89,8 @@ if ($method === 'POST') {
             'status' => 'aberta',
             'openedAt' => $openedAt,
             'notes' => $notes,
-            'includeServiceCharge' => true,
-            'serviceChargePercent' => 10,
+            'includeServiceCharge' => (bool)$includeService,
+            'serviceChargePercent' => $servicePercent,
             'items' => [],
         ]);
     }
@@ -101,11 +110,12 @@ if ($method === 'POST') {
         $prod = $prodStmt->fetch();
         if (!$prod) sendError('Produto não encontrado');
 
-        $itemId = 'item-' . round(microtime(true) * 1000);
-        $now = date('Y-m-d H:i:s');
+        $itemId = !empty($data['itemId']) ? trim($data['itemId']) : ('item-' . round(microtime(true) * 1000));
+        $now = !empty($data['addedAt']) ? $data['addedAt'] : date('Y-m-d H:i:s');
 
         $stmt = $pdo->prepare("INSERT INTO comanda_items (id, comanda_id, product_id, product_name, unit_price, quantity, notes, added_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE quantity = VALUES(quantity), notes = VALUES(notes)");
         $stmt->execute([$itemId, $comandaId, $productId, $prod['name'], $prod['price'], $quantity, $notes, $now]);
 
         // Reduzir estoque de garrafas proporcionalmente se houver ficha técnica
