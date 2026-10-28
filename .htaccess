@@ -1,0 +1,44 @@
+# ====================================================================
+# HONORATO DRINKERIA - CONFIGURAÇÃO APACHE / HOSTGATOR (.htaccess)
+# ====================================================================
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # 1. Manter arquivos e pastas existentes intactos (como /api/*.php, assets, imagens)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # 2. Redirecionar todas as rotas do frontend (/cardapio, /comandas, /caixa, etc.) para o index.html
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Compressão GZIP para carregamento ultra rápido em celulares
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# Cache de arquivos estáticos (CSS, JS, Fontes, Imagens)
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/gif "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/webp "access plus 1 month"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 month"
+</IfModule>
+
+# Bloquear listagem de diretórios por segurança
+Options -Indexes
+
+# Cabeçalhos de Segurança
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+</IfModule>
