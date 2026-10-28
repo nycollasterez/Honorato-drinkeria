@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/$USER/public_html/drinkeria/
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -R honorato_hostgator/* $DEPLOYPATH
+    - /bin/cp honorato_hostgator/.htaccess $DEPLOYPATH

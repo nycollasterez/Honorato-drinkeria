@@ -103,10 +103,10 @@ if ($method === 'GET') {
     // 5. Caixa
     $cash = $pdo->query("SELECT * FROM cash_register WHERE id = 1")->fetch();
     $cashRegister = [
-        'isOpen' => $cash ? (bool)$cash['is_open'] : true,
-        'openedAt' => $cash ? $cash['opened_at'] : date('Y-m-d H:i:s'),
-        'initialCash' => $cash ? (float)$cash['initial_cash'] : 300.0,
-        'currentCashBalance' => $cash ? (float)$cash['current_cash_balance'] : 300.0,
+        'isOpen' => $cash ? (bool)$cash['is_open'] : false,
+        'openedAt' => $cash ? ($cash['opened_at'] ?? '') : '',
+        'initialCash' => $cash ? (float)$cash['initial_cash'] : 0.0,
+        'currentCashBalance' => $cash ? (float)$cash['current_cash_balance'] : 0.0,
         'totalRevenue' => $cash ? (float)$cash['total_revenue'] : 0.0,
         'totalServiceCharge' => $cash ? (float)$cash['total_service_charge'] : 0.0,
         'byPaymentMethod' => ($cash && $cash['by_payment_method_json']) ? json_decode($cash['by_payment_method_json'], true) : [
@@ -135,6 +135,22 @@ if ($method === 'GET') {
         ];
     }, $rRows);
 
+    // 7. PINs de Acesso da Equipe
+    $staffPins = [
+        'admin' => '0000',
+        'garcom' => '1234',
+        'caixa' => '2026',
+        'estoque' => '5555'
+    ];
+    try {
+        $pinRows = $pdo->query("SELECT role, pin FROM staff_pins")->fetchAll();
+        foreach ($pinRows as $pr) {
+            $staffPins[$pr['role']] = $pr['pin'];
+        }
+    } catch (Exception $e) {
+        // ignora se a tabela não existir
+    }
+
     sendResponse([
         'products' => $products,
         'bottles' => $bottles,
@@ -142,13 +158,38 @@ if ($method === 'GET') {
         'transactions' => $transactions,
         'cashRegister' => $cashRegister,
         'closingReports' => $closingReports,
+        'staffPins' => $staffPins,
         'serverTime' => date('Y-m-d H:i:s'),
     ]);
 }
 
-// POST: Seed inicial / Importação de dados padrão
+// POST: Ações de sincronização, atualização de PIN e Reset de Produção
 if ($method === 'POST') {
     $data = getRequestBody();
+    $action = $data['action'] ?? '';
+
+    // Atualização de PIN da equipe
+    if ($action === 'update_pin') {
+        $role = $data['role'] ?? '';
+        $pin = $data['pin'] ?? '';
+        if ($role && $pin) {
+            $stmt = $pdo->prepare("UPDATE staff_pins SET pin = :pin WHERE role = :role");
+            $stmt->execute([':pin' => $pin, ':role' => $role]);
+            sendResponse(['updated' => true]);
+        }
+    }
+
+    // Reset completo para início de operação real na inauguração
+    if ($action === 'reset_production') {
+        $pdo->exec("DELETE FROM comanda_items");
+        $pdo->exec("DELETE FROM comandas");
+        $pdo->exec("DELETE FROM transactions");
+        $pdo->exec("DELETE FROM daily_closing_reports");
+        $pdo->exec("UPDATE cash_register SET is_open = 0, initial_cash = 0.00, current_cash_balance = 0.00, total_revenue = 0.00, total_service_charge = 0.00, by_payment_method_json = '{\"pix\":0,\"cartao_credito\":0,\"cartao_debito\":0,\"dinheiro\":0,\"misto\":0}' WHERE id = 1");
+        $pdo->exec("UPDATE bottles SET open_bottle_current_ml = bottle_capacity_ml");
+        sendResponse(['reset' => true]);
+    }
+
     $initialProducts = $data['products'] ?? [];
     $initialBottles = $data['bottles'] ?? [];
 

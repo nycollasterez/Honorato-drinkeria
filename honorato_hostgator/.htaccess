@@ -4,14 +4,13 @@
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
 
-  # 1. Manter arquivos e pastas existentes intactos (como /api/*.php, assets, imagens)
+  # 1. Manter arquivos e pastas físicas existentes intactos (como /api/*.php, /assets/*)
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # 2. Redirecionar todas as rotas do frontend (/cardapio, /comandas, /caixa, etc.) para o index.html
+  # 2. Redirecionar todas as rotas do frontend para o index.html relativo
   RewriteRule ^ index.html [L]
 </IfModule>
 

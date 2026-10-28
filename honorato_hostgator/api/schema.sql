@@ -160,9 +160,9 @@ CREATE TABLE IF NOT EXISTS `staff_pins` (
   PRIMARY KEY (`role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Inserir dados padrão de estado do caixa
+-- Inserir dados padrão de estado do caixa (fechado para início de operação)
 INSERT INTO `cash_register` (`id`, `is_open`, `opened_at`, `initial_cash`, `current_cash_balance`, `total_revenue`, `total_service_charge`, `by_payment_method_json`)
-VALUES (1, 1, NOW(), 300.00, 300.00, 0.00, 0.00, '{"pix":0,"cartao_credito":0,"cartao_debito":0,"dinheiro":0,"misto":0}')
+VALUES (1, 0, NOW(), 0.00, 0.00, 0.00, 0.00, '{"pix":0,"cartao_credito":0,"cartao_debito":0,"dinheiro":0,"misto":0}')
 ON DUPLICATE KEY UPDATE `id` = 1;
 
 -- Inserir PINs da equipe

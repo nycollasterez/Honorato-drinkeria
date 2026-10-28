@@ -194,6 +194,11 @@ if ($method === 'POST') {
         $comanda = $cStmt->fetch();
         if (!$comanda) sendError('Comanda não encontrada');
 
+        // Impede fechar a mesma comanda mais de uma vez
+        if ($comanda['status'] === 'paga') {
+            sendResponse(['paid' => true, 'alreadyPaid' => true, 'total' => (float)$comanda['total_paid']]);
+        }
+
         $iStmt = $pdo->prepare("SELECT product_name, unit_price, quantity FROM comanda_items WHERE comanda_id = ?");
         $iStmt->execute([$comandaId]);
         $items = $iStmt->fetchAll();
