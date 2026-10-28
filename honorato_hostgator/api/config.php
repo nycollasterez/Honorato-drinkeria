@@ -31,7 +31,7 @@ define('DB_PASS', 'SuaSenhaSegura@2026'); // Senha do usuário do banco
 /**
  * Retorna uma conexão PDO ativa com o MySQL
  */
-function getDatabaseConnection() {
+function getDatabaseConnection($suppressExit = false) {
     static $pdo = null;
     if ($pdo !== null) {
         return $pdo;
@@ -45,8 +45,26 @@ function getDatabaseConnection() {
             PDO::ATTR_EMULATE_PREPARES => false,
         ];
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+
+        // Auto-instalação: se o banco for novo e não tiver tabelas, cria tudo a partir de schema.sql
+        try {
+            $checkStmt = $pdo->query("SHOW TABLES LIKE 'products'");
+            if ($checkStmt && $checkStmt->rowCount() === 0) {
+                $schemaFile = __DIR__ . '/schema.sql';
+                if (file_exists($schemaFile)) {
+                    $sql = file_get_contents($schemaFile);
+                    $pdo->exec($sql);
+                }
+            }
+        } catch (Exception $e) {
+            // Continua normalmente se o schema falhar ou já existir
+        }
+
         return $pdo;
     } catch (PDOException $e) {
+        if ($suppressExit) {
+            throw $e;
+        }
         http_response_code(500);
         echo json_encode([
             'success' => false,
