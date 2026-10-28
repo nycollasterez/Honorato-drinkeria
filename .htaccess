@@ -4,7 +4,6 @@
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
 
   # 1. Manter arquivos e pastas existentes intactos (como /api/*.php, assets, imagens)
   RewriteCond %{REQUEST_FILENAME} -f [OR]

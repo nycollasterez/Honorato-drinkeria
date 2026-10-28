@@ -22,7 +22,10 @@ function getApiBaseUrl(): string {
   if (typeof window === 'undefined') return './api';
   const path = window.location.pathname;
   const cleanPath = path.replace(/\/(cardapio|menu|comandas|caixa|estoque|gerencia|qrcode|login)\/?$/i, '');
-  const dir = cleanPath.substring(0, cleanPath.lastIndexOf('/') + 1);
+  const normalizedPath = cleanPath.endsWith('/') || cleanPath.includes('.')
+    ? cleanPath
+    : cleanPath + '/';
+  const dir = normalizedPath.substring(0, normalizedPath.lastIndexOf('/') + 1);
   const base = (dir + 'api').replace(/\/\/+/g, '/');
   return base.startsWith('/') ? base : '/' + base;
 }
