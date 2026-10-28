@@ -40,7 +40,7 @@ export const Navbar: React.FC = () => {
     const tableBadge = mesaParam ? mesaParam.replace(/-/g, ' ').toUpperCase() : null;
 
     return (
-      <header className="no-print sticky top-0 z-40 bg-black/95 backdrop-blur border-b border-neutral-900">
+      <header className="no-print sticky top-0 z-40 bg-black/95 backdrop-blur border-b border-neutral-900 safe-header">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 border border-neutral-700 bg-neutral-950 flex items-center justify-center text-white">
@@ -123,7 +123,7 @@ export const Navbar: React.FC = () => {
   );
 
   return (
-    <header className="no-print sticky top-0 z-40 bg-black/95 backdrop-blur border-b border-neutral-800">
+    <header className="no-print sticky top-0 z-40 bg-black/95 backdrop-blur border-b border-neutral-800 safe-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}

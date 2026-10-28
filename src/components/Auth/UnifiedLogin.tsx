@@ -64,9 +64,9 @@ export const UnifiedLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col justify-between p-4 sm:p-6 select-none touch-manipulation">
+    <div className="min-h-screen bg-black text-white flex flex-col justify-between p-4 sm:p-6 select-none touch-manipulation login-safe-container">
       {/* Brand Header */}
-      <div className="max-w-sm mx-auto w-full text-center pt-8 sm:pt-14 space-y-3">
+      <div className="max-w-sm mx-auto w-full text-center pt-10 sm:pt-14 space-y-3">
         <div className="inline-flex items-center justify-center w-14 h-14 border border-neutral-700 bg-neutral-950 mx-auto shadow-lg">
           <Wine className="w-7 h-7 text-white stroke-[1.4]" />
         </div>

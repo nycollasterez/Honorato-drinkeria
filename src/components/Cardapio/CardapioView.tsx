@@ -158,8 +158,8 @@ export const CardapioView: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
-        {/* Search & Categories Bar (Sticky no celular e desktop) */}
-        <div className="space-y-2.5 sticky top-12 sm:top-14 z-30 bg-black/95 backdrop-blur-md py-2.5 sm:py-3 border-b border-neutral-800">
+        {/* Search & Categories Bar (Sticky no celular e desktop com suporte a notch) */}
+        <div className="space-y-2.5 sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-30 bg-black/95 backdrop-blur-md py-2.5 sm:py-3 border-b border-neutral-800">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" />
             <input

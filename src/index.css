@@ -43,6 +43,36 @@
   background: #404040;
 }
 
+/* ==================================================================== */
+/* SUPORTE A IPHONE / NOTCH / DYNAMIC ISLAND (PWA EM TELA CHEIA)        */
+/* ==================================================================== */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-header {
+  padding-top: max(env(safe-area-inset-top, 0px), 0px);
+}
+
+.safe-top-padding {
+  padding-top: max(env(safe-area-inset-top, 0px), 16px);
+}
+
+.safe-bottom-padding {
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 12px);
+}
+
+/* Modo Aplicativo / PWA Instalado no iPhone (Standalone) */
+@media all and (display-mode: standalone) {
+  .safe-header {
+    padding-top: max(env(safe-area-inset-top, 0px), 36px);
+  }
+  .login-safe-container {
+    padding-top: max(env(safe-area-inset-top, 0px), 48px) !important;
+  }
+}
+
 @page {
   size: A4 portrait;
   margin: 10mm 12mm;
