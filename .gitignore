@@ -5,6 +5,7 @@ coverage/
 .DS_Store
 *.log
 *.zip
+*config.local.php
 .antigravity/
 .env*
 !.env.example

@@ -22,11 +22,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 // ========================================================
 // CONFIGURE AQUI SUAS CREDENCIAIS DO CPANEL DA HOSTGATOR
+// Se existir o arquivo config.local.php, ele carrega de lá
+// para não dar conflito nas atualizações do Git
 // ========================================================
-define('DB_HOST', 'localhost'); // Na HostGator geralmente é 'localhost'
-define('DB_NAME', 'honorato_drinkeria'); // Nome do banco criado no cPanel
-define('DB_USER', 'honorato_user');      // Usuário do banco criado no cPanel
-define('DB_PASS', 'SuaSenhaSegura@2026'); // Senha do usuário do banco
+if (file_exists(__DIR__ . '/config.local.php')) {
+    require_once __DIR__ . '/config.local.php';
+}
+
+if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
+if (!defined('DB_NAME')) define('DB_NAME', 'honorato_drinkeria');
+if (!defined('DB_USER')) define('DB_USER', 'honorato_user');
+if (!defined('DB_PASS')) define('DB_PASS', 'SuaSenhaSegura@2026');
 
 /**
  * Retorna uma conexão PDO ativa com o MySQL
