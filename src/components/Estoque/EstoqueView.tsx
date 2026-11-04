@@ -300,15 +300,15 @@ export const EstoqueView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-black text-white p-4 sm:p-6 lg:p-8">
+    <div className="min-h-[calc(100vh-64px)] bg-[#0c1122] text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1f2945] pb-4">
           <div>
             <h1 className="font-editorial text-2xl font-bold text-white">
               Estoque & Bar
             </h1>
-            <p className="text-xs text-neutral-400 mt-0.5">
+            <p className="text-xs text-neutral-300 mt-0.5">
               Garrafas, dosagens e rendimento
             </p>
           </div>
@@ -317,7 +317,7 @@ export const EstoqueView: React.FC = () => {
             {activeTab === 'garrafas' ? (
               <button
                 onClick={handleOpenNewBottleModal}
-                className="px-3 py-1.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Nova Garrafa</span>
@@ -325,7 +325,7 @@ export const EstoqueView: React.FC = () => {
             ) : (
               <button
                 onClick={handleOpenNewProductModal}
-                className="px-3 py-1.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="px-3 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Novo Drink</span>
@@ -336,8 +336,8 @@ export const EstoqueView: React.FC = () => {
 
         {/* Minimal KPI Cards */}
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <div className="bg-neutral-950 border border-neutral-800 p-3 sm:p-4 space-y-0.5">
-            <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">
+          <div className="bg-[#13192f] border border-[#1f2945] p-3 sm:p-4 space-y-0.5">
+            <span className="text-[10px] text-neutral-300 uppercase tracking-wider block">
               Rótulos
             </span>
             <span className="text-xl sm:text-2xl font-bold font-mono text-white">
@@ -345,8 +345,8 @@ export const EstoqueView: React.FC = () => {
             </span>
           </div>
 
-          <div className="bg-neutral-950 border border-neutral-800 p-3 sm:p-4 space-y-0.5">
-            <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">
+          <div className="bg-[#13192f] border border-[#1f2945] p-3 sm:p-4 space-y-0.5">
+            <span className="text-[10px] text-neutral-300 uppercase tracking-wider block">
               Em Reserva (Lacradas)
             </span>
             <span className="text-xl sm:text-2xl font-bold font-mono text-white">
@@ -358,12 +358,12 @@ export const EstoqueView: React.FC = () => {
             onClick={() => setOnlyLowStock(!onlyLowStock)}
             className={`border p-3 sm:p-4 space-y-0.5 cursor-pointer transition-colors ${
               lowBottles.length > 0
-                ? 'bg-neutral-900 border-white'
-                : 'bg-neutral-950 border-neutral-800'
+                ? 'bg-[#1a2342] border-[#ff5a1f]'
+                : 'bg-[#13192f] border-[#1f2945]'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">
+              <span className="text-[10px] text-neutral-300 uppercase tracking-wider block">
                 Críticas (&lt;30%)
               </span>
               <AlertTriangle className="w-3 h-3 text-white" />
@@ -375,13 +375,13 @@ export const EstoqueView: React.FC = () => {
         </div>
 
         {/* Tab Selector */}
-        <div className="flex border-b border-neutral-800 space-x-2 text-xs">
+        <div className="flex border-b border-[#1f2945] space-x-2 text-xs">
           <button
             onClick={() => setActiveTab('garrafas')}
             className={`py-2 px-3 font-semibold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'garrafas'
-                ? 'border-white text-white font-bold'
-                : 'border-transparent text-neutral-400 hover:text-white'
+                ? 'border-[#ff5a1f] text-[#ff5a1f] font-bold'
+                : 'border-transparent text-neutral-300 hover:text-white'
             }`}
           >
             <Wine className="w-3.5 h-3.5" />
@@ -392,8 +392,8 @@ export const EstoqueView: React.FC = () => {
             onClick={() => setActiveTab('produtos')}
             className={`py-2 px-3 font-semibold border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'produtos'
-                ? 'border-white text-white font-bold'
-                : 'border-transparent text-neutral-400 hover:text-white'
+                ? 'border-[#ff5a1f] text-[#ff5a1f] font-bold'
+                : 'border-transparent text-neutral-300 hover:text-white'
             }`}
           >
             <Layers className="w-3.5 h-3.5" />
@@ -402,9 +402,9 @@ export const EstoqueView: React.FC = () => {
         </div>
 
         {/* Search Toolbar */}
-        <div className="bg-neutral-950 border border-neutral-800 p-3 flex flex-col sm:flex-row gap-2.5 items-center justify-between">
+        <div className="bg-[#13192f] border border-[#1f2945] p-3 flex flex-col sm:flex-row gap-2.5 items-center justify-between">
           <div className="relative flex-1 w-full">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
             <input
               type="text"
               placeholder={
@@ -414,17 +414,17 @@ export const EstoqueView: React.FC = () => {
               }
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-neutral-900 border border-neutral-700 pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white"
+              className="w-full bg-[#1a2342] border border-[#253257] pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-[#ff5a1f]"
             />
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto text-xs">
-            <label className="flex items-center gap-1.5 text-xs text-neutral-300 bg-neutral-900 border border-neutral-700 px-2.5 py-1.5 cursor-pointer">
+            <label className="flex items-center gap-1.5 text-xs text-neutral-300 bg-[#1a2342] border border-[#253257] px-2.5 py-1.5 cursor-pointer">
               <input
                 type="checkbox"
                 checked={onlyLowStock}
                 onChange={(e) => setOnlyLowStock(e.target.checked)}
-                className="rounded-none bg-black border-neutral-700 text-white"
+                className="rounded-none bg-[#0c1122] border-[#253257] text-white"
               />
               <span>Só Críticos</span>
             </label>
@@ -435,7 +435,7 @@ export const EstoqueView: React.FC = () => {
                   resetToDefaults();
                 }
               }}
-              className="px-2.5 py-1.5 border border-neutral-800 text-neutral-400 hover:text-white text-xs flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1.5 border border-[#1f2945] text-neutral-300 hover:text-white text-xs flex items-center gap-1 cursor-pointer"
               title="Restaurar padrão"
             >
               <RefreshCw className="w-3 h-3" />
@@ -461,13 +461,13 @@ export const EstoqueView: React.FC = () => {
               return (
                 <div
                   key={b.id}
-                  className="bg-neutral-950 border border-neutral-800 hover:border-neutral-600 transition-all p-4 flex flex-col justify-between space-y-3"
+                  className="bg-[#13192f] border border-[#1f2945] hover:border-[#303f6b] transition-all p-4 flex flex-col justify-between space-y-3"
                 >
                   <div className="space-y-2.5">
                     {/* Bottle Header */}
                     <div className="flex justify-between items-start gap-2">
                       <div>
-                        <span className="text-[9px] text-neutral-500 uppercase tracking-wider block font-mono">
+                        <span className="text-[9px] text-neutral-400 uppercase tracking-wider block font-mono">
                           {b.category} · {b.bottleCapacityMl}ml
                         </span>
                         <h3 className="font-editorial text-base font-bold text-white leading-tight">
@@ -478,12 +478,12 @@ export const EstoqueView: React.FC = () => {
                       <span
                         className={`text-[9px] uppercase font-bold px-1.5 py-0.5 border ${
                           isEmpty
-                            ? 'border-white bg-black text-white'
+                            ? 'border-[#ff5a1f] bg-[#0c1122] text-white'
                             : isEnding
-                            ? 'border-white bg-white text-black'
+                            ? 'border-[#ff5a1f] bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold'
                             : isHalf
-                            ? 'border-neutral-700 bg-neutral-900 text-neutral-300'
-                            : 'border-neutral-700 bg-neutral-900 text-white'
+                            ? 'border-[#253257] bg-[#1a2342] text-neutral-300'
+                            : 'border-[#253257] bg-[#1a2342] text-white'
                         }`}
                       >
                         {isEmpty
@@ -497,15 +497,15 @@ export const EstoqueView: React.FC = () => {
                     </div>
 
                     {/* Level Gauge */}
-                    <div className="p-2.5 bg-neutral-900 border border-neutral-800 space-y-1.5">
+                    <div className="p-2.5 bg-[#1a2342] border border-[#1f2945] space-y-1.5">
                       <div className="flex justify-between items-baseline text-xs">
-                        <span className="text-neutral-400 text-[11px]">Bancada:</span>
+                        <span className="text-neutral-300 text-[11px]">Bancada:</span>
                         <span className="font-mono font-bold text-white text-xs">
                           {b.openBottleCurrentMl}ml / {b.bottleCapacityMl}ml ({pct}%)
                         </span>
                       </div>
 
-                      <div className="w-full bg-black border border-neutral-700 h-2 overflow-hidden">
+                      <div className="w-full bg-[#0c1122] border border-[#253257] h-2 overflow-hidden">
                         <div
                           className={`h-full transition-all duration-300 ${
                             isEnding ? 'bg-white' : 'bg-neutral-300'
@@ -514,7 +514,7 @@ export const EstoqueView: React.FC = () => {
                         />
                       </div>
 
-                      <div className="flex justify-between text-[10px] text-neutral-400 pt-0.5">
+                      <div className="flex justify-between text-[10px] text-neutral-300 pt-0.5">
                         <span>
                           Resta: ~<strong className="text-white">{Math.floor(b.openBottleCurrentMl / 50)}</strong> doses
                         </span>
@@ -525,9 +525,9 @@ export const EstoqueView: React.FC = () => {
                     </div>
 
                     {/* Reserve Stock Row */}
-                    <div className="p-2 bg-neutral-900/60 border border-neutral-800 flex items-center justify-between text-xs">
+                    <div className="p-2 bg-[#1a2342]/70 border border-[#1f2945] flex items-center justify-between text-xs">
                       <div>
-                        <span className="text-[10px] text-neutral-400 uppercase block">Reserva</span>
+                        <span className="text-[10px] text-neutral-300 uppercase block">Reserva</span>
                         <span className="font-mono font-bold text-white text-xs">
                           {b.sealedBottlesCount} fechadas
                         </span>
@@ -536,12 +536,12 @@ export const EstoqueView: React.FC = () => {
                       {b.sealedBottlesCount > 0 ? (
                         <button
                           onClick={() => openNewSealedBottle(b.id)}
-                          className="px-2 py-1 border border-neutral-700 hover:border-white text-[10px] font-bold uppercase tracking-wider text-white transition-colors cursor-pointer"
+                          className="px-2 py-1 border border-[#253257] hover:border-[#ff5a1f] text-[10px] font-bold uppercase tracking-wider text-white transition-colors cursor-pointer"
                         >
                           Abrir
                         </button>
                       ) : (
-                        <span className="text-[9px] text-white font-bold bg-neutral-800 px-1.5 py-0.5 border border-white">
+                        <span className="text-[9px] text-white font-bold bg-neutral-800 px-1.5 py-0.5 border border-[#ff5a1f]">
                           Zerada
                         </span>
                       )}
@@ -549,38 +549,38 @@ export const EstoqueView: React.FC = () => {
 
                     {/* Drinks using this bottle */}
                     {consumingProducts.length > 0 && (
-                      <div className="text-[10px] text-neutral-400 flex flex-wrap gap-1 items-center pt-0.5">
-                        <span className="text-neutral-500">Usa em:</span>
+                      <div className="text-[10px] text-neutral-300 flex flex-wrap gap-1 items-center pt-0.5">
+                        <span className="text-neutral-400">Usa em:</span>
                         {consumingProducts.slice(0, 3).map((p) => {
                           const ing = p.recipeIngredients?.find((r) => r.bottleId === b.id);
                           return (
                             <span
                               key={p.id}
-                              className="px-1 py-0.2 border border-neutral-800 bg-neutral-900 text-neutral-300"
+                              className="px-1 py-0.2 border border-[#1f2945] bg-[#1a2342] text-neutral-300"
                             >
                               {p.name} ({ing?.mlPerDrink}ml)
                             </span>
                           );
                         })}
                         {consumingProducts.length > 3 && (
-                          <span className="text-neutral-500">+{consumingProducts.length - 3}</span>
+                          <span className="text-neutral-400">+{consumingProducts.length - 3}</span>
                         )}
                       </div>
                     )}
                   </div>
 
                   {/* Actions */}
-                  <div className="pt-2 border-t border-neutral-800 flex items-center justify-between text-xs">
+                  <div className="pt-2 border-t border-[#1f2945] flex items-center justify-between text-xs">
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => addSealedBottles(b.id, 1)}
-                        className="px-2 py-1 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-[10px] font-bold text-white cursor-pointer"
+                        className="px-2 py-1 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-[10px] font-bold text-white cursor-pointer"
                       >
                         +1 un
                       </button>
                       <button
                         onClick={() => addSealedBottles(b.id, 6)}
-                        className="px-2 py-1 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-[10px] font-bold text-white cursor-pointer"
+                        className="px-2 py-1 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-[10px] font-bold text-white cursor-pointer"
                       >
                         +6 cx
                       </button>
@@ -589,7 +589,7 @@ export const EstoqueView: React.FC = () => {
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleOpenEditBottleModal(b)}
-                        className="p-1 border border-neutral-800 hover:border-neutral-600 text-neutral-400 hover:text-white cursor-pointer"
+                        className="p-1 border border-[#1f2945] hover:border-[#303f6b] text-neutral-300 hover:text-white cursor-pointer"
                         title="Editar"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
@@ -598,7 +598,7 @@ export const EstoqueView: React.FC = () => {
                         onClick={() => {
                           if (confirm(`Excluir ${b.name}?`)) deleteBottle(b.id);
                         }}
-                        className="p-1 border border-neutral-800 hover:border-neutral-600 text-neutral-400 hover:text-white cursor-pointer"
+                        className="p-1 border border-[#1f2945] hover:border-[#303f6b] text-neutral-300 hover:text-white cursor-pointer"
                         title="Excluir"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -613,9 +613,9 @@ export const EstoqueView: React.FC = () => {
 
         {/* TAB 2: PRODUTOS & FICHAS */}
         {activeTab === 'produtos' && (
-          <div className="bg-neutral-950 border border-neutral-800 overflow-x-auto">
+          <div className="bg-[#13192f] border border-[#1f2945] overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-neutral-900 text-neutral-400 uppercase tracking-wider text-[10px] border-b border-neutral-800">
+              <thead className="bg-[#1a2342] text-neutral-300 uppercase tracking-wider text-[10px] border-b border-[#1f2945]">
                 <tr>
                   <th className="p-3">Drink / Item</th>
                   <th className="p-3">Preço</th>
@@ -627,19 +627,19 @@ export const EstoqueView: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-neutral-800">
                 {filteredProducts.map((prod) => (
-                  <tr key={prod.id} className="hover:bg-neutral-900/40 transition-colors">
+                  <tr key={prod.id} className="hover:bg-[#1a2342]/50 transition-colors">
                     <td className="p-3">
                       <div className="flex items-center gap-2.5">
                         <img
                           src={prod.imageUrl}
                           alt={prod.name}
-                          className="w-9 h-9 object-cover border border-neutral-700 grayscale shrink-0"
+                          className="w-9 h-9 object-cover border border-[#253257] grayscale shrink-0"
                         />
                         <div>
                           <span className="font-semibold text-white block text-xs">
                             {prod.name}
                           </span>
-                          <span className="text-[10px] text-neutral-400">
+                          <span className="text-[10px] text-neutral-300">
                             {CATEGORY_LABELS[prod.category]}
                           </span>
                         </div>
@@ -657,14 +657,14 @@ export const EstoqueView: React.FC = () => {
                           {prod.recipeIngredients.map((r) => (
                             <span
                               key={r.bottleId}
-                              className="px-1.5 py-0.5 bg-neutral-900 border border-neutral-700 text-[10px] text-white font-mono"
+                              className="px-1.5 py-0.5 bg-[#1a2342] border border-[#253257] text-[10px] text-white font-mono"
                             >
                               {r.bottleName}: {r.mlPerDrink}ml
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-neutral-500 text-[10px]">
+                        <span className="text-neutral-400 text-[10px]">
                           Sem baixa em garrafa
                         </span>
                       )}
@@ -687,7 +687,7 @@ export const EstoqueView: React.FC = () => {
                           })}
                         </div>
                       ) : (
-                        <span className="text-neutral-400 font-mono text-xs">
+                        <span className="text-neutral-300 font-mono text-xs">
                           {prod.stock} un
                         </span>
                       )}
@@ -699,8 +699,8 @@ export const EstoqueView: React.FC = () => {
                         onClick={() => toggleProductAvailability(prod.id)}
                         className={`px-2 py-0.5 text-[10px] uppercase font-bold border transition-colors cursor-pointer ${
                           prod.isAvailable
-                            ? 'bg-neutral-900 border-neutral-700 text-white'
-                            : 'bg-black border-neutral-800 text-neutral-500'
+                            ? 'bg-[#1a2342] border-[#253257] text-white'
+                            : 'bg-[#0c1122] border-[#1f2945] text-neutral-400'
                         }`}
                       >
                         {prod.isAvailable ? 'Ativo' : 'Esgotado'}
@@ -712,7 +712,7 @@ export const EstoqueView: React.FC = () => {
                       <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => handleOpenEditProductModal(prod)}
-                          className="p-1 border border-neutral-800 hover:border-neutral-600 text-neutral-400 hover:text-white cursor-pointer"
+                          className="p-1 border border-[#1f2945] hover:border-[#303f6b] text-neutral-300 hover:text-white cursor-pointer"
                           title="Editar"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -721,7 +721,7 @@ export const EstoqueView: React.FC = () => {
                           onClick={() => {
                             if (confirm(`Excluir ${prod.name}?`)) deleteProduct(prod.id);
                           }}
-                          className="p-1 border border-neutral-800 hover:border-neutral-600 text-neutral-400 hover:text-white cursor-pointer"
+                          className="p-1 border border-[#1f2945] hover:border-[#303f6b] text-neutral-300 hover:text-white cursor-pointer"
                           title="Excluir"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -738,15 +738,15 @@ export const EstoqueView: React.FC = () => {
 
       {/* MODAL: NOVA / EDITAR GARRAFA */}
       {isBottleModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-neutral-950 border border-neutral-700 w-full max-w-md p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-2.5">
+        <div className="fixed inset-0 z-50 bg-[#0c1122]/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#13192f] border border-[#253257] w-full max-w-md p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#1f2945] pb-2.5">
               <h2 className="font-editorial text-lg font-bold text-white">
                 {editingBottle ? 'Editar Garrafa' : 'Nova Garrafa no Bar'}
               </h2>
               <button
                 onClick={() => setIsBottleModalOpen(false)}
-                className="text-neutral-400 hover:text-white"
+                className="text-neutral-300 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -762,7 +762,7 @@ export const EstoqueView: React.FC = () => {
                   placeholder="Ex: Gin Tanqueray, Bourbon Bulleit..."
                   value={bottleFormData.name}
                   onChange={(e) => setBottleFormData({ ...bottleFormData, name: e.target.value })}
-                  className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white"
                   required
                 />
               </div>
@@ -777,7 +777,7 @@ export const EstoqueView: React.FC = () => {
                     onChange={(e) =>
                       setBottleFormData({ ...bottleFormData, category: e.target.value as any })
                     }
-                    className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white"
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white"
                   >
                     <option value="destilado">Destilado</option>
                     <option value="licor">Licor</option>
@@ -800,7 +800,7 @@ export const EstoqueView: React.FC = () => {
                     onChange={(e) =>
                       setBottleFormData({ ...bottleFormData, bottleCapacityMl: e.target.value })
                     }
-                    className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white font-mono"
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white font-mono"
                     required
                   />
                 </div>
@@ -817,7 +817,7 @@ export const EstoqueView: React.FC = () => {
                     onChange={(e) =>
                       setBottleFormData({ ...bottleFormData, openBottleCurrentMl: e.target.value })
                     }
-                    className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white font-mono"
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white font-mono"
                     required
                   />
                 </div>
@@ -832,7 +832,7 @@ export const EstoqueView: React.FC = () => {
                     onChange={(e) =>
                       setBottleFormData({ ...bottleFormData, sealedBottlesCount: e.target.value })
                     }
-                    className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white font-mono"
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white font-mono"
                     required
                   />
                 </div>
@@ -842,13 +842,13 @@ export const EstoqueView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsBottleModalOpen(false)}
-                  className="px-3 py-1.5 border border-neutral-700 text-neutral-300 hover:text-white cursor-pointer"
+                  className="px-3 py-1.5 border border-[#253257] text-neutral-300 hover:text-white cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-white text-black font-bold uppercase tracking-wider hover:bg-neutral-200 cursor-pointer"
+                  className="px-4 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold uppercase tracking-wider hover:bg-neutral-200 cursor-pointer"
                 >
                   Salvar
                 </button>
@@ -860,15 +860,15 @@ export const EstoqueView: React.FC = () => {
 
       {/* MODAL: NOVO / EDITAR DRINK & RECEITA */}
       {isProductModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-neutral-950 border border-neutral-700 w-full max-w-xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-2.5">
+        <div className="fixed inset-0 z-50 bg-[#0c1122]/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#13192f] border border-[#253257] w-full max-w-xl max-h-[90vh] overflow-y-auto p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-[#1f2945] pb-2.5">
               <h2 className="font-editorial text-lg font-bold text-white">
                 {editingProduct ? 'Editar Drink' : 'Novo Drink & Ficha Técnica'}
               </h2>
               <button
                 onClick={() => setIsProductModalOpen(false)}
-                className="text-neutral-400 hover:text-white"
+                className="text-neutral-300 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -887,7 +887,7 @@ export const EstoqueView: React.FC = () => {
                     onChange={(e) =>
                       setProductFormData({ ...productFormData, name: e.target.value })
                     }
-                    className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white"
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white"
                     required
                   />
                 </div>
@@ -904,7 +904,7 @@ export const EstoqueView: React.FC = () => {
                         category: e.target.value as ProductCategory,
                       })
                     }
-                    className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white"
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white"
                   >
                     <option value="autorais">Autorais</option>
                     <option value="classicos">Clássicos</option>
@@ -928,7 +928,7 @@ export const EstoqueView: React.FC = () => {
                   onChange={(e) =>
                     setProductFormData({ ...productFormData, description: e.target.value })
                   }
-                  className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white"
                 />
               </div>
 
@@ -944,7 +944,7 @@ export const EstoqueView: React.FC = () => {
                     onChange={(e) =>
                       setProductFormData({ ...productFormData, price: e.target.value })
                     }
-                    className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white font-mono"
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white font-mono"
                     required
                   />
                 </div>
@@ -960,13 +960,13 @@ export const EstoqueView: React.FC = () => {
                     onChange={(e) =>
                       setProductFormData({ ...productFormData, volume: e.target.value })
                     }
-                    className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white"
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white"
                   />
                 </div>
               </div>
 
               {/* Ficha Técnica & Baixa de Garrafas */}
-              <div className="p-3 bg-neutral-900 border border-neutral-800 space-y-2.5">
+              <div className="p-3 bg-[#1a2342] border border-[#1f2945] space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-white flex items-center gap-1.5">
                     <Droplet className="w-3.5 h-3.5 text-white" />
@@ -976,14 +976,14 @@ export const EstoqueView: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAddRecipeIngredientRow}
-                    className="px-2 py-1 bg-white text-black font-bold uppercase tracking-wider text-[10px] hover:bg-neutral-200 cursor-pointer"
+                    className="px-2 py-1 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold uppercase tracking-wider text-[10px] hover:bg-neutral-200 cursor-pointer"
                   >
                     + Adicionar Insumo
                   </button>
                 </div>
 
                 {productFormData.recipeIngredients.length === 0 ? (
-                  <p className="text-[11px] text-neutral-500 py-1">
+                  <p className="text-[11px] text-neutral-400 py-1">
                     Nenhuma garrafa vinculada. O drink não dará baixa em ml.
                   </p>
                 ) : (
@@ -997,14 +997,14 @@ export const EstoqueView: React.FC = () => {
                       return (
                         <div
                           key={idx}
-                          className="flex items-center gap-2 bg-neutral-950 p-2 border border-neutral-800"
+                          className="flex items-center gap-2 bg-[#13192f] p-2 border border-[#1f2945]"
                         >
                           <select
                             value={row.bottleId}
                             onChange={(e) =>
                               handleUpdateRecipeRow(idx, 'bottleId', e.target.value)
                             }
-                            className="flex-1 bg-neutral-900 border border-neutral-700 p-1.5 text-white text-xs"
+                            className="flex-1 bg-[#1a2342] border border-[#253257] p-1.5 text-white text-xs"
                           >
                             {bottles.map((b) => (
                               <option key={b.id} value={b.id}>
@@ -1026,19 +1026,19 @@ export const EstoqueView: React.FC = () => {
                                   parseInt(e.target.value, 10) || 0
                                 )
                               }
-                              className="w-16 bg-neutral-900 border border-neutral-700 p-1.5 text-white font-mono text-xs text-right"
+                              className="w-16 bg-[#1a2342] border border-[#253257] p-1.5 text-white font-mono text-xs text-right"
                             />
-                            <span className="text-[10px] text-neutral-400">ml</span>
+                            <span className="text-[10px] text-neutral-300">ml</span>
                           </div>
 
-                          <span className="text-[10px] font-mono text-neutral-400 px-1">
+                          <span className="text-[10px] font-mono text-neutral-300 px-1">
                             (~{yieldCount} drinks/garrafa)
                           </span>
 
                           <button
                             type="button"
                             onClick={() => handleRemoveRecipeRow(idx)}
-                            className="p-1 text-neutral-500 hover:text-white"
+                            className="p-1 text-neutral-400 hover:text-white"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -1057,17 +1057,17 @@ export const EstoqueView: React.FC = () => {
                 }
               />
 
-              <div className="pt-2 flex justify-end gap-2 border-t border-neutral-800">
+              <div className="pt-2 flex justify-end gap-2 border-t border-[#1f2945]">
                 <button
                   type="button"
                   onClick={() => setIsProductModalOpen(false)}
-                  className="px-3 py-1.5 border border-neutral-700 text-neutral-300 hover:text-white cursor-pointer"
+                  className="px-3 py-1.5 border border-[#253257] text-neutral-300 hover:text-white cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 bg-white text-black font-bold uppercase tracking-wider hover:bg-neutral-200 cursor-pointer"
+                  className="px-4 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold uppercase tracking-wider hover:bg-neutral-200 cursor-pointer"
                 >
                   Salvar Drink
                 </button>

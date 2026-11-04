@@ -138,15 +138,15 @@ export const QrCodeView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-black text-white p-4 sm:p-6 lg:p-8">
+    <div className="min-h-[calc(100vh-64px)] bg-[#0c1122] text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
-        <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+        <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1f2945] pb-4">
           <div>
             <h1 className="font-editorial text-2xl font-bold text-white">
               QR Code & Placas de Mesa
             </h1>
-            <p className="text-xs text-neutral-400 mt-0.5">
+            <p className="text-xs text-neutral-300 mt-0.5">
               Gere links diretos, baixe imagens em alta definição e imprima displays de mesa
             </p>
           </div>
@@ -154,7 +154,7 @@ export const QrCodeView: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={handleTestLink}
-              className="px-3 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition-colors"
               title="Abrir o link do cardápio em uma nova aba para testar"
             >
               <ExternalLink className="w-3.5 h-3.5" />
@@ -169,7 +169,7 @@ export const QrCodeView: React.FC = () => {
                 setIsClientOnlyMode(true);
                 setActiveView('cardapio');
               }}
-              className="px-3 py-1.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="px-3 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <Wine className="w-3.5 h-3.5" />
               <span>Modo Cliente</span>
@@ -180,12 +180,12 @@ export const QrCodeView: React.FC = () => {
         {/* Configuration & Preview Grid */}
         <div className="no-print grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Controls (5 cols) */}
-          <div className="lg:col-span-5 bg-neutral-950 border border-neutral-800 p-5 space-y-5">
-            <div className="space-y-0.5 border-b border-neutral-800 pb-2">
+          <div className="lg:col-span-5 bg-[#13192f] border border-[#1f2945] p-5 space-y-5">
+            <div className="space-y-0.5 border-b border-[#1f2945] pb-2">
               <h3 className="font-editorial text-lg font-bold text-white">
                 1. Configuração do Destino
               </h3>
-              <p className="text-[11px] text-neutral-400">
+              <p className="text-[11px] text-neutral-300">
                 Ajuste a URL exata do seu domínio caso o site esteja em uma pasta ou subdomínio
               </p>
             </div>
@@ -195,13 +195,13 @@ export const QrCodeView: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-neutral-300 font-semibold flex items-center gap-1.5">
-                    <LinkIcon className="w-3.5 h-3.5 text-neutral-400" />
+                    <LinkIcon className="w-3.5 h-3.5 text-neutral-300" />
                     <span>URL Base do Cardápio:</span>
                   </label>
                   <button
                     type="button"
                     onClick={() => setCustomUrl(getAutoDetectedMenuUrl())}
-                    className="text-[10px] text-neutral-400 hover:text-white underline cursor-pointer flex items-center gap-1"
+                    className="text-[10px] text-neutral-300 hover:text-white underline cursor-pointer flex items-center gap-1"
                     title="Redetectar URL pelo navegador"
                   >
                     <RotateCcw className="w-3 h-3" />
@@ -213,15 +213,15 @@ export const QrCodeView: React.FC = () => {
                   value={customUrl}
                   onChange={(e) => setCustomUrl(e.target.value)}
                   placeholder="https://seusite.com.br/cardapio"
-                  className="w-full bg-neutral-900 border border-neutral-700 p-2.5 font-mono text-[11px] text-white focus:outline-none focus:border-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 font-mono text-[11px] text-white focus:outline-none focus:border-[#ff5a1f]"
                 />
-                <p className="text-[10px] text-neutral-500">
+                <p className="text-[10px] text-neutral-400">
                   Dica HostGator: Se o site estiver em <code className="text-neutral-300">dominio.com.br/bar/</code>, digite <code className="text-neutral-300">https://dominio.com.br/bar/cardapio</code>.
                 </p>
               </div>
 
               {/* Table Identification */}
-              <div className="pt-2 border-t border-neutral-800 space-y-3">
+              <div className="pt-2 border-t border-[#1f2945] space-y-3">
                 <label className="block text-neutral-300 font-semibold">
                   Tipo de Local / Mesa:
                 </label>
@@ -233,8 +233,8 @@ export const QrCodeView: React.FC = () => {
                       onClick={() => setTableType(t)}
                       className={`p-2 border text-center transition-colors cursor-pointer text-xs ${
                         tableType === t
-                          ? 'bg-white text-black border-white font-bold'
-                          : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-600'
+                          ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f] font-bold'
+                          : 'bg-[#1a2342] text-neutral-300 border-[#1f2945] hover:border-[#303f6b]'
                       }`}
                     >
                       {t}
@@ -244,7 +244,7 @@ export const QrCodeView: React.FC = () => {
 
                 {tableType !== 'Geral' && (
                   <div>
-                    <label className="block text-neutral-400 text-[11px] mb-1.5">
+                    <label className="block text-neutral-300 text-[11px] mb-1.5">
                       Número do Local:
                     </label>
                     <div className="flex flex-wrap gap-1.5">
@@ -255,8 +255,8 @@ export const QrCodeView: React.FC = () => {
                           onClick={() => setTableNumber(num)}
                           className={`w-8 h-8 border text-center font-mono font-bold cursor-pointer transition-colors text-xs ${
                             tableNumber === num
-                              ? 'bg-white text-black border-white'
-                              : 'bg-neutral-900 text-neutral-300 border-neutral-800 hover:border-neutral-600'
+                              ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f]'
+                              : 'bg-[#1a2342] text-neutral-300 border-[#1f2945] hover:border-[#303f6b]'
                           }`}
                         >
                           {num}
@@ -267,7 +267,7 @@ export const QrCodeView: React.FC = () => {
                 )}
 
                 <div>
-                  <label className="block text-neutral-400 text-[11px] mb-1">
+                  <label className="block text-neutral-300 text-[11px] mb-1">
                     Ou Nome Customizado (Opcional):
                   </label>
                   <input
@@ -275,7 +275,7 @@ export const QrCodeView: React.FC = () => {
                     placeholder="Ex: Lounge VIP, Deck Superior, Balcão 1..."
                     value={customTableLabel}
                     onChange={(e) => setCustomTableLabel(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white focus:outline-none focus:border-white text-xs"
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white focus:outline-none focus:border-[#ff5a1f] text-xs"
                   />
                 </div>
 
@@ -294,9 +294,9 @@ export const QrCodeView: React.FC = () => {
               </div>
 
               {/* Generated Final Link & Actions */}
-              <div className="pt-3 border-t border-neutral-800 space-y-2">
-                <label className="block text-neutral-400 text-[11px]">Link Gravado no QR Code:</label>
-                <div className="p-2.5 bg-neutral-900 border border-neutral-800 font-mono text-[11px] text-white truncate select-all break-all">
+              <div className="pt-3 border-t border-[#1f2945] space-y-2">
+                <label className="block text-neutral-300 text-[11px]">Link Gravado no QR Code:</label>
+                <div className="p-2.5 bg-[#1a2342] border border-[#1f2945] font-mono text-[11px] text-white truncate select-all break-all">
                   {targetMenuUrl}
                 </div>
 
@@ -304,7 +304,7 @@ export const QrCodeView: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleCopyLink}
-                    className="py-2 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-white font-medium flex items-center justify-center gap-1.5 cursor-pointer text-xs"
+                    className="py-2 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-white font-medium flex items-center justify-center gap-1.5 cursor-pointer text-xs"
                   >
                     {copied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copied ? 'Copiado!' : 'Copiar Link'}</span>
@@ -313,7 +313,7 @@ export const QrCodeView: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleDownloadPng}
-                    className="py-2 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-white font-medium flex items-center justify-center gap-1.5 cursor-pointer text-xs"
+                    className="py-2 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-white font-medium flex items-center justify-center gap-1.5 cursor-pointer text-xs"
                     title="Baixar imagem PNG do QR Code em alta resolução"
                   >
                     {downloadSuccess ? <Check className="w-3.5 h-3.5 text-white" /> : <Download className="w-3.5 h-3.5" />}
@@ -327,7 +327,7 @@ export const QrCodeView: React.FC = () => {
                 <button
                   type="button"
                   onClick={handlePrint}
-                  className="w-full py-3 bg-white text-black font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-lg text-xs"
+                  className="w-full py-3 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-lg text-xs"
                 >
                   <Printer className="w-4 h-4 stroke-[2.5]" />
                   <span>Imprimir Display de Mesa</span>
@@ -338,12 +338,12 @@ export const QrCodeView: React.FC = () => {
 
           {/* Table Card Display Preview (7 cols) */}
           <div className="lg:col-span-7 flex flex-col items-center justify-center">
-            <span className="text-xs uppercase tracking-wider text-neutral-400 mb-3">
+            <span className="text-xs uppercase tracking-wider text-neutral-300 mb-3">
               Pré-visualização do Display de Mesa
             </span>
 
             {/* Printable Frame Preview */}
-            <div className="w-full max-w-sm bg-white text-black p-8 border-4 border-black text-center space-y-5 shadow-2xl">
+            <div className="w-full max-w-sm bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold p-8 border-4 border-black text-center space-y-5 shadow-2xl">
               <div className="flex items-center justify-center gap-2">
                 <div className="w-8 h-8 border border-black flex items-center justify-center">
                   <Wine className="w-5 h-5 text-black" />
@@ -386,7 +386,7 @@ export const QrCodeView: React.FC = () => {
         </div>
 
         {/* PRINT ONLY SECTION - Optimized for A4 or Table Tent Physical Print */}
-        <div className="print-only hidden p-8 bg-white text-black min-h-screen">
+        <div className="print-only hidden p-8 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold min-h-screen">
           <div className="max-w-md mx-auto border-4 border-black p-10 text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
               <div className="w-12 h-12 border-2 border-black flex items-center justify-center">

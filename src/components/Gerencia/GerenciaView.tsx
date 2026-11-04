@@ -365,10 +365,10 @@ export const GerenciaView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-black text-white p-4 sm:p-6 lg:p-8">
+    <div className="min-h-[calc(100vh-64px)] bg-[#0c1122] text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+        <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1f2945] pb-4">
           <div>
             <h1 className="font-editorial text-2xl font-bold text-white">
               Painel da Gerência
@@ -384,7 +384,7 @@ export const GerenciaView: React.FC = () => {
                 setIsClientOnlyMode(true);
                 setActiveView('cardapio');
               }}
-              className="px-3 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <ExternalLink className="w-3.5 h-3.5" />
               <span>Cardápio Cliente</span>
@@ -394,7 +394,7 @@ export const GerenciaView: React.FC = () => {
               onClick={() => {
                 setActiveTab('relatorio_a4');
               }}
-              className="px-3 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Ver A4</span>
@@ -402,7 +402,7 @@ export const GerenciaView: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('fechamento')}
-              className="px-3 py-1.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-colors"
+              className="px-3 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer transition-colors"
             >
               <DollarSign className="w-3.5 h-3.5" />
               <span>Fechar Caixa</span>
@@ -411,13 +411,13 @@ export const GerenciaView: React.FC = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="no-print flex border-b border-neutral-800 space-x-2 text-xs">
+        <div className="no-print flex border-b border-[#1f2945] space-x-2 text-xs">
           <button
             onClick={() => setActiveTab('overview')}
             className={`py-2 px-3 font-semibold border-b-2 transition-colors cursor-pointer ${
               activeTab === 'overview'
-                ? 'border-white text-white font-bold'
-                : 'border-transparent text-neutral-400 hover:text-white'
+                ? 'border-[#ff5a1f] text-[#ff5a1f] font-bold'
+                : 'border-transparent text-neutral-300 hover:text-white'
             }`}
           >
             Visão Geral
@@ -426,8 +426,8 @@ export const GerenciaView: React.FC = () => {
             onClick={() => setActiveTab('fechamento')}
             className={`py-2 px-3 font-semibold border-b-2 transition-colors cursor-pointer ${
               activeTab === 'fechamento'
-                ? 'border-white text-white font-bold'
-                : 'border-transparent text-neutral-400 hover:text-white'
+                ? 'border-[#ff5a1f] text-[#ff5a1f] font-bold'
+                : 'border-transparent text-neutral-300 hover:text-white'
             }`}
           >
             Fechar Caixa
@@ -436,8 +436,8 @@ export const GerenciaView: React.FC = () => {
             onClick={() => setActiveTab('relatorio_a4')}
             className={`py-2 px-3 font-semibold border-b-2 transition-colors cursor-pointer ${
               activeTab === 'relatorio_a4'
-                ? 'border-white text-white font-bold'
-                : 'border-transparent text-neutral-400 hover:text-white'
+                ? 'border-[#ff5a1f] text-[#ff5a1f] font-bold'
+                : 'border-transparent text-neutral-300 hover:text-white'
             }`}
           >
             Relatórios A4
@@ -446,8 +446,8 @@ export const GerenciaView: React.FC = () => {
             onClick={() => setActiveTab('seguranca')}
             className={`py-2 px-3 font-semibold border-b-2 transition-colors cursor-pointer ${
               activeTab === 'seguranca'
-                ? 'border-white text-white font-bold'
-                : 'border-transparent text-neutral-400 hover:text-white'
+                ? 'border-[#ff5a1f] text-[#ff5a1f] font-bold'
+                : 'border-transparent text-neutral-300 hover:text-white'
             }`}
           >
             Segurança & PINs
@@ -459,44 +459,44 @@ export const GerenciaView: React.FC = () => {
           <div className="space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="bg-neutral-950 border border-neutral-800 p-4 space-y-1">
-                <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">
+              <div className="bg-[#13192f] border border-[#1f2945] p-4 space-y-1">
+                <span className="text-[10px] text-neutral-300 uppercase tracking-wider block">
                   Faturamento Hoje
                 </span>
                 <span className="text-xl sm:text-2xl font-bold font-mono text-white">
                   {formatPrice(cashRegister.totalRevenue)}
                 </span>
-                <p className="text-[10px] text-neutral-500">{todayComandasClosed} pagas</p>
+                <p className="text-[10px] text-neutral-400">{todayComandasClosed} pagas</p>
               </div>
 
-              <div className="bg-neutral-950 border border-neutral-800 p-4 space-y-1">
-                <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">
+              <div className="bg-[#13192f] border border-[#1f2945] p-4 space-y-1">
+                <span className="text-[10px] text-neutral-300 uppercase tracking-wider block">
                   Ticket Médio
                 </span>
                 <span className="text-xl sm:text-2xl font-bold font-mono text-white">
                   {formatPrice(todayComandasClosed > 0 ? cashRegister.totalRevenue / todayComandasClosed : 0)}
                 </span>
-                <p className="text-[10px] text-neutral-500">Por conta</p>
+                <p className="text-[10px] text-neutral-400">Por conta</p>
               </div>
 
-              <div className="bg-neutral-950 border border-neutral-800 p-4 space-y-1">
-                <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">
+              <div className="bg-[#13192f] border border-[#1f2945] p-4 space-y-1">
+                <span className="text-[10px] text-neutral-300 uppercase tracking-wider block">
                   Serviço (10%)
                 </span>
                 <span className="text-xl sm:text-2xl font-bold font-mono text-white">
                   {formatPrice(cashRegister.totalServiceCharge)}
                 </span>
-                <p className="text-[10px] text-neutral-500">Taxa acumulada</p>
+                <p className="text-[10px] text-neutral-400">Taxa acumulada</p>
               </div>
 
               <div
                 onClick={() => setActiveView('estoque')}
                 className={`p-4 border cursor-pointer transition-colors space-y-1 ${
-                  lowBottles.length > 0 ? 'bg-neutral-900 border-white' : 'bg-neutral-950 border-neutral-800'
+                  lowBottles.length > 0 ? 'bg-[#1a2342] border-[#ff5a1f]' : 'bg-[#13192f] border-[#1f2945]'
                 }`}
               >
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-neutral-400 uppercase tracking-wider block">
+                  <span className="text-[10px] text-neutral-300 uppercase tracking-wider block">
                     Garrafas Críticas
                   </span>
                   <AlertTriangle className="w-3.5 h-3.5 text-white" />
@@ -504,15 +504,15 @@ export const GerenciaView: React.FC = () => {
                 <span className="text-xl sm:text-2xl font-bold font-mono text-white">
                   {lowBottles.length}
                 </span>
-                <p className="text-[10px] text-neutral-500">&lt;30% ou sem reserva</p>
+                <p className="text-[10px] text-neutral-400">&lt;30% ou sem reserva</p>
               </div>
             </div>
 
             {/* Two Columns: Top Drinks & Bottle Status */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {/* Top Drinks */}
-              <div className="bg-neutral-950 border border-neutral-800 p-4 space-y-3">
-                <div className="flex justify-between items-center border-b border-neutral-800 pb-2">
+              <div className="bg-[#13192f] border border-[#1f2945] p-4 space-y-3">
+                <div className="flex justify-between items-center border-b border-[#1f2945] pb-2">
                   <h3 className="font-semibold text-xs text-white uppercase tracking-wider">
                     Mais Vendidos Hoje
                   </h3>
@@ -521,14 +521,14 @@ export const GerenciaView: React.FC = () => {
                       setReportPeriod('hoje');
                       setActiveTab('relatorio_a4');
                     }}
-                    className="text-[11px] text-neutral-400 hover:text-white underline cursor-pointer"
+                    className="text-[11px] text-neutral-300 hover:text-white underline cursor-pointer"
                   >
                     Ver Completo
                   </button>
                 </div>
 
                 {todayProductCounts.length === 0 ? (
-                  <p className="text-xs text-neutral-500 py-4 text-center">
+                  <p className="text-xs text-neutral-400 py-4 text-center">
                     Nenhum drink ou produto vendido no turno de hoje até o momento.
                   </p>
                 ) : (
@@ -536,7 +536,7 @@ export const GerenciaView: React.FC = () => {
                     {todayProductCounts.slice(0, 5).map((item, idx) => (
                       <div key={item.name} className="py-2 flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-[10px] w-5 h-5 flex items-center justify-center border border-neutral-700 bg-neutral-900 text-white font-bold">
+                          <span className="font-mono text-[10px] w-5 h-5 flex items-center justify-center border border-[#253257] bg-[#1a2342] text-white font-bold">
                             {idx + 1}
                           </span>
                           <span className="text-white font-medium">{item.name}</span>
@@ -545,7 +545,7 @@ export const GerenciaView: React.FC = () => {
                           <span className="font-mono font-bold text-white block">
                             {item.quantity} un
                           </span>
-                          <span className="text-[10px] text-neutral-400">
+                          <span className="text-[10px] text-neutral-300">
                             {formatPrice(item.totalRevenue)}
                           </span>
                         </div>
@@ -556,14 +556,14 @@ export const GerenciaView: React.FC = () => {
               </div>
 
               {/* Bottle Stock */}
-              <div className="bg-neutral-950 border border-neutral-800 p-4 space-y-3">
-                <div className="flex justify-between items-center border-b border-neutral-800 pb-2">
+              <div className="bg-[#13192f] border border-[#1f2945] p-4 space-y-3">
+                <div className="flex justify-between items-center border-b border-[#1f2945] pb-2">
                   <h3 className="font-semibold text-xs text-white uppercase tracking-wider">
                     Nível de Garrafas no Bar
                   </h3>
                   <button
                     onClick={() => setActiveView('estoque')}
-                    className="text-[11px] text-neutral-400 hover:text-white underline cursor-pointer"
+                    className="text-[11px] text-neutral-300 hover:text-white underline cursor-pointer"
                   >
                     Ir ao Estoque
                   </button>
@@ -577,11 +577,11 @@ export const GerenciaView: React.FC = () => {
                       <div key={b.id} className="py-2 space-y-1">
                         <div className="flex justify-between items-baseline">
                           <span className="font-medium text-white">{b.name}</span>
-                          <span className="font-mono text-[11px] text-neutral-400">
+                          <span className="font-mono text-[11px] text-neutral-300">
                             {b.openBottleCurrentMl}ml ({pct}%) · ~{doses} doses
                           </span>
                         </div>
-                        <div className="w-full bg-neutral-900 border border-neutral-800 h-1.5 overflow-hidden">
+                        <div className="w-full bg-[#1a2342] border border-[#1f2945] h-1.5 overflow-hidden">
                           <div
                             className={`h-full ${pct < 30 ? 'bg-white' : 'bg-neutral-400'}`}
                             style={{ width: `${Math.min(100, Math.max(0, pct))}%` }}
@@ -598,16 +598,16 @@ export const GerenciaView: React.FC = () => {
 
         {/* TAB 2: FECHAMENTO DO DIA */}
         {activeTab === 'fechamento' && (
-          <div className="max-w-2xl mx-auto bg-neutral-950 border border-neutral-800 p-6 space-y-6 text-xs">
-            <div className="border-b border-neutral-800 pb-3">
+          <div className="max-w-2xl mx-auto bg-[#13192f] border border-[#1f2945] p-6 space-y-6 text-xs">
+            <div className="border-b border-[#1f2945] pb-3">
               <h2 className="font-editorial text-xl font-bold text-white">
                 Fechamento de Caixa Diário
               </h2>
             </div>
 
             {/* Reconciliation breakdown */}
-            <div className="space-y-2.5 bg-neutral-900/60 border border-neutral-800 p-4">
-              <h3 className="font-semibold text-white uppercase tracking-wider text-[11px] border-b border-neutral-800 pb-1.5">
+            <div className="space-y-2.5 bg-[#1a2342]/70 border border-[#1f2945] p-4">
+              <h3 className="font-semibold text-white uppercase tracking-wider text-[11px] border-b border-[#1f2945] pb-1.5">
                 Conciliação da Gaveta (Dinheiro Físico)
               </h3>
               <div className="flex justify-between text-neutral-300">
@@ -627,7 +627,7 @@ export const GerenciaView: React.FC = () => {
                 <span className="font-mono text-white font-semibold">-{formatPrice(todaySangrias)}</span>
               </div>
 
-              <div className="p-2.5 bg-black border border-neutral-700 flex justify-between font-bold text-sm">
+              <div className="p-2.5 bg-[#0c1122] border border-[#253257] flex justify-between font-bold text-sm">
                 <span className="text-white">Saldo Esperado na Gaveta:</span>
                 <span className="font-mono text-white">
                   {formatPrice(cashRegister.currentCashBalance)}
@@ -636,8 +636,8 @@ export const GerenciaView: React.FC = () => {
             </div>
 
             {/* Electronic breakdown */}
-            <div className="space-y-2.5 bg-neutral-900/60 border border-neutral-800 p-4">
-              <h3 className="font-semibold text-white uppercase tracking-wider text-[11px] border-b border-neutral-800 pb-1.5">
+            <div className="space-y-2.5 bg-[#1a2342]/70 border border-[#1f2945] p-4">
+              <h3 className="font-semibold text-white uppercase tracking-wider text-[11px] border-b border-[#1f2945] pb-1.5">
                 Vendas Eletrônicas & Faturamento Total
               </h3>
               <div className="flex justify-between text-neutral-300">
@@ -657,7 +657,7 @@ export const GerenciaView: React.FC = () => {
                 <span className="font-mono text-white font-semibold">{formatPrice(cashRegister.totalServiceCharge)}</span>
               </div>
 
-              <div className="flex justify-between py-2 border-t border-neutral-800 text-sm font-bold text-white">
+              <div className="flex justify-between py-2 border-t border-[#1f2945] text-sm font-bold text-white">
                 <span>FATURAMENTO BRUTO TOTAL:</span>
                 <span className="font-mono text-base">{formatPrice(cashRegister.totalRevenue)}</span>
               </div>
@@ -672,7 +672,7 @@ export const GerenciaView: React.FC = () => {
                   type="text"
                   value={managerName}
                   onChange={(e) => setManagerName(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-700 p-2.5 text-white focus:outline-none focus:border-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-white focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
@@ -685,13 +685,13 @@ export const GerenciaView: React.FC = () => {
                   placeholder="Opcional..."
                   value={closingNotes}
                   onChange={(e) => setClosingNotes(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-700 p-2.5 text-white focus:outline-none focus:border-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-white focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
               <button
                 onClick={handleExecuteClosing}
-                className="w-full py-3 bg-white text-black font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer text-xs shadow-lg mt-2"
+                className="w-full py-3 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer text-xs shadow-lg mt-2"
               >
                 Confirmar Fechamento & Emitir Relatório A4
               </button>
@@ -703,19 +703,19 @@ export const GerenciaView: React.FC = () => {
         {activeTab === 'relatorio_a4' && (
           <div className="space-y-6">
             {/* Control Bar */}
-            <div className="no-print bg-neutral-950 border border-neutral-800 p-3 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 text-xs">
+            <div className="no-print bg-[#13192f] border border-[#1f2945] p-3 sm:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 text-xs">
               {/* Period Selectors */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-neutral-400 font-semibold text-[11px] flex items-center gap-1">
+                <span className="text-neutral-300 font-semibold text-[11px] flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
                   <span>Período:</span>
                 </span>
 
-                <div className="flex flex-wrap border border-neutral-700 bg-neutral-900">
+                <div className="flex flex-wrap border border-[#253257] bg-[#1a2342]">
                   <button
                     onClick={() => setReportPeriod('hoje')}
                     className={`px-3 py-1.5 font-semibold cursor-pointer transition-colors ${
-                      reportPeriod === 'hoje' ? 'bg-white text-black font-bold' : 'text-neutral-300 hover:text-white'
+                      reportPeriod === 'hoje' ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold' : 'text-neutral-300 hover:text-white'
                     }`}
                   >
                     Hoje
@@ -723,7 +723,7 @@ export const GerenciaView: React.FC = () => {
                   <button
                     onClick={() => setReportPeriod('ontem')}
                     className={`px-3 py-1.5 font-semibold cursor-pointer transition-colors ${
-                      reportPeriod === 'ontem' ? 'bg-white text-black font-bold' : 'text-neutral-300 hover:text-white'
+                      reportPeriod === 'ontem' ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold' : 'text-neutral-300 hover:text-white'
                     }`}
                   >
                     Ontem
@@ -731,7 +731,7 @@ export const GerenciaView: React.FC = () => {
                   <button
                     onClick={() => setReportPeriod('7dias')}
                     className={`px-3 py-1.5 font-semibold cursor-pointer transition-colors ${
-                      reportPeriod === '7dias' ? 'bg-white text-black font-bold' : 'text-neutral-300 hover:text-white'
+                      reportPeriod === '7dias' ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold' : 'text-neutral-300 hover:text-white'
                     }`}
                   >
                     Últimos 7 Dias
@@ -739,7 +739,7 @@ export const GerenciaView: React.FC = () => {
                   <button
                     onClick={() => setReportPeriod('mes')}
                     className={`px-3 py-1.5 font-semibold cursor-pointer transition-colors ${
-                      reportPeriod === 'mes' ? 'bg-white text-black font-bold' : 'text-neutral-300 hover:text-white'
+                      reportPeriod === 'mes' ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold' : 'text-neutral-300 hover:text-white'
                     }`}
                   >
                     Mês Atual
@@ -753,7 +753,7 @@ export const GerenciaView: React.FC = () => {
                       setSelectedHistoricalId(e.target.value);
                       setReportPeriod('historico');
                     }}
-                    className="bg-neutral-900 border border-neutral-700 text-neutral-200 py-1.5 px-2 text-xs focus:outline-none"
+                    className="bg-[#1a2342] border border-[#253257] text-neutral-200 py-1.5 px-2 text-xs focus:outline-none"
                   >
                     <option value="">Histórico de Fechamentos...</option>
                     {closingReports.map((r) => (
@@ -769,7 +769,7 @@ export const GerenciaView: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleExportCsv}
-                  className="px-3.5 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold flex items-center gap-1.5 cursor-pointer text-xs"
+                  className="px-3.5 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-white font-semibold flex items-center gap-1.5 cursor-pointer text-xs"
                   title="Baixar planilha compatível com Microsoft Excel"
                 >
                   <Download className="w-3.5 h-3.5" />
@@ -778,7 +778,7 @@ export const GerenciaView: React.FC = () => {
 
                 <button
                   onClick={handlePrintA4}
-                  className="px-3.5 py-1.5 bg-white text-black font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-neutral-200 cursor-pointer shadow text-xs"
+                  className="px-3.5 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold uppercase tracking-wider flex items-center gap-1.5 hover:bg-neutral-200 cursor-pointer shadow text-xs"
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>Imprimir PDF (A4)</span>
@@ -790,7 +790,7 @@ export const GerenciaView: React.FC = () => {
             <div className="flex justify-center">
               <div
                 id="a4-report"
-                className="a4-sheet bg-white text-black w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-12 border border-neutral-400 shadow-2xl space-y-6 font-sans text-xs"
+                className="a4-sheet bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-12 border border-neutral-400 shadow-2xl space-y-6 font-sans text-xs"
               >
                 {/* Header */}
                 <div className="border-b-2 border-black pb-4 flex justify-between items-start">
@@ -849,7 +849,7 @@ export const GerenciaView: React.FC = () => {
                     <h3 className="font-bold text-xs uppercase tracking-wider">
                       1. Distribuição das Formas de Pagamento
                     </h3>
-                    <span className="text-[10px] text-neutral-500">Total Faturado</span>
+                    <span className="text-[10px] text-neutral-400">Total Faturado</span>
                   </div>
 
                   <table className="w-full text-left text-xs border border-neutral-300">
@@ -879,7 +879,7 @@ export const GerenciaView: React.FC = () => {
                       <h3 className="font-bold text-xs uppercase tracking-wider">
                         2. Conciliação da Gaveta (Dinheiro Físico)
                       </h3>
-                      <span className="text-[10px] text-neutral-500">Auditoria Física</span>
+                      <span className="text-[10px] text-neutral-400">Auditoria Física</span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 p-3 bg-neutral-50 border border-neutral-300 text-[11px]">
@@ -917,11 +917,11 @@ export const GerenciaView: React.FC = () => {
                     <h3 className="font-bold text-xs uppercase tracking-wider">
                       {reportPeriod === 'hoje' || reportPeriod === 'ontem' || reportPeriod === 'historico' ? '3.' : '2.'} Mix de Produtos Vendidos
                     </h3>
-                    <span className="text-[10px] text-neutral-500">Por volume e receita</span>
+                    <span className="text-[10px] text-neutral-400">Por volume e receita</span>
                   </div>
 
                   {activeReportData.products.length === 0 ? (
-                    <div className="p-3 text-center text-neutral-500 border border-neutral-200">
+                    <div className="p-3 text-center text-neutral-400 border border-neutral-200">
                       Nenhum produto vendido registrado no período selecionado.
                     </div>
                   ) : (
@@ -954,7 +954,7 @@ export const GerenciaView: React.FC = () => {
                     <h3 className="font-bold text-xs uppercase tracking-wider">
                       {reportPeriod === 'hoje' || reportPeriod === 'ontem' || reportPeriod === 'historico' ? '4.' : '3.'} Nível das Garrafas (Auditoria do Estoque)
                     </h3>
-                    <span className="text-[10px] text-neutral-500">Base: dose padrão 50ml</span>
+                    <span className="text-[10px] text-neutral-400">Base: dose padrão 50ml</span>
                   </div>
 
                   <table className="w-full text-left text-[11px] border border-neutral-300">
@@ -1018,8 +1018,8 @@ export const GerenciaView: React.FC = () => {
         {activeTab === 'seguranca' && (
           <div className="space-y-6 max-w-4xl mx-auto">
             {/* PINs Management Card */}
-            <div className="bg-neutral-950 border border-neutral-800 p-6 space-y-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-4">
+            <div className="bg-[#13192f] border border-[#1f2945] p-6 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1f2945] pb-4">
                 <div>
                   <h2 className="font-editorial text-xl font-bold text-white flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5" />
@@ -1030,7 +1030,7 @@ export const GerenciaView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowPins(!showPins)}
-                  className="px-3 py-1.5 border border-neutral-700 bg-neutral-900 text-xs font-semibold text-neutral-300 hover:text-white flex items-center gap-1.5 w-fit cursor-pointer"
+                  className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] text-xs font-semibold text-neutral-300 hover:text-white flex items-center gap-1.5 w-fit cursor-pointer"
                 >
                   {showPins ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   <span>{showPins ? 'Ocultar PINs' : 'Revelar PINs'}</span>
@@ -1038,7 +1038,7 @@ export const GerenciaView: React.FC = () => {
               </div>
 
               {pinSuccessMsg && (
-                <div className="p-3 bg-neutral-900 border border-white text-white text-xs font-semibold flex items-center gap-2">
+                <div className="p-3 bg-[#1a2342] border border-[#ff5a1f] text-[#ff5a1f] text-xs font-semibold flex items-center gap-2">
                   <Check className="w-4 h-4" />
                   <span>{pinSuccessMsg}</span>
                 </div>
@@ -1057,11 +1057,11 @@ export const GerenciaView: React.FC = () => {
                   return (
                     <div
                       key={item.role}
-                      className="p-4 border border-neutral-800 bg-neutral-900/40 space-y-3"
+                      className="p-4 border border-[#1f2945] bg-[#1a2342]/50 space-y-3"
                     >
                       <div className="flex justify-between items-center">
                         <h3 className="font-bold text-sm text-white">{item.title}</h3>
-                        <span className="font-mono text-sm px-2.5 py-1 bg-black border border-neutral-700 text-white font-bold tracking-widest">
+                        <span className="font-mono text-sm px-2.5 py-1 bg-[#0c1122] border border-[#253257] text-white font-bold tracking-widest">
                           {showPins ? currentPin : '••••'}
                         </span>
                       </div>
@@ -1074,7 +1074,7 @@ export const GerenciaView: React.FC = () => {
                             placeholder="Novo PIN"
                             value={tempPin}
                             onChange={(e) => setTempPin(e.target.value.replace(/\D/g, ''))}
-                            className="bg-black border border-neutral-600 px-3 py-1.5 text-xs text-white font-mono flex-1 focus:outline-none focus:border-white tracking-widest"
+                            className="bg-[#0c1122] border border-[#303f6b] px-3 py-1.5 text-xs text-white font-mono flex-1 focus:outline-none focus:border-[#ff5a1f] tracking-widest"
                             autoFocus
                           />
                           <button
@@ -1088,7 +1088,7 @@ export const GerenciaView: React.FC = () => {
                                 setTimeout(() => setPinSuccessMsg(''), 4000);
                               }
                             }}
-                            className="px-3 py-1.5 bg-white text-black font-bold text-xs uppercase hover:bg-neutral-200 cursor-pointer"
+                            className="px-3 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold text-xs uppercase hover:bg-neutral-200 cursor-pointer"
                           >
                             Salvar
                           </button>
@@ -1098,7 +1098,7 @@ export const GerenciaView: React.FC = () => {
                               setEditingRole(null);
                               setTempPin('');
                             }}
-                            className="px-2.5 py-1.5 border border-neutral-700 text-neutral-400 text-xs hover:text-white cursor-pointer"
+                            className="px-2.5 py-1.5 border border-[#253257] text-neutral-300 text-xs hover:text-white cursor-pointer"
                           >
                             Cancelar
                           </button>
@@ -1110,7 +1110,7 @@ export const GerenciaView: React.FC = () => {
                             setEditingRole(item.role);
                             setTempPin('');
                           }}
-                          className="w-full py-1.5 border border-neutral-800 hover:border-neutral-600 bg-neutral-900 text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                          className="w-full py-1.5 border border-[#1f2945] hover:border-[#303f6b] bg-[#1a2342] text-xs text-neutral-300 hover:text-white transition-colors cursor-pointer"
                         >
                           Alterar PIN
                         </button>

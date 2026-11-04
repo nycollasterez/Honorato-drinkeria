@@ -146,17 +146,17 @@ export const ComandasView: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-black text-white p-4 sm:p-6 lg:p-8">
+    <div className="min-h-[calc(100vh-64px)] bg-[#0c1122] text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Top Control Bar */}
-        <div className="flex items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+        <div className="flex items-center justify-between gap-4 border-b border-[#1f2945] pb-4">
           <h1 className="font-editorial text-2xl font-bold text-white">
             Comandas
           </h1>
 
           <button
             onClick={() => setIsNewComandaModalOpen(true)}
-            className="px-3.5 py-2 bg-white text-black hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Nova Comanda</span>
@@ -168,15 +168,15 @@ export const ComandasView: React.FC = () => {
           {/* LEFT: Comandas Grid / Selector (5 cols on lg) */}
           <div className="lg:col-span-5 space-y-4">
             {/* Search & Status Filters */}
-            <div className="space-y-3 bg-neutral-950 p-4 border border-neutral-800">
+            <div className="space-y-3 bg-[#13192f] p-4 border border-[#1f2945]">
               <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-300" />
                 <input
                   type="text"
                   placeholder="Buscar comanda #, mesa ou cliente..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-700 pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
@@ -195,8 +195,8 @@ export const ComandasView: React.FC = () => {
                     onClick={() => setStatusFilter(tab.key)}
                     className={`py-1.5 px-2 border text-center transition-colors cursor-pointer ${
                       statusFilter === tab.key
-                        ? 'bg-white text-black border-white font-semibold'
-                        : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
+                        ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f] font-semibold'
+                        : 'bg-[#1a2342] text-neutral-300 border-[#1f2945] hover:text-white'
                     }`}
                   >
                     {tab.label}
@@ -208,9 +208,9 @@ export const ComandasView: React.FC = () => {
             {/* List of Comandas */}
             <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
               {filteredComandas.length === 0 ? (
-                <div className="text-center py-12 border border-neutral-800 p-6 bg-neutral-950">
-                  <FileText className="w-8 h-8 mx-auto text-neutral-400 mb-2 stroke-[1.2]" />
-                  <p className="text-xs text-neutral-400">Nenhuma comanda encontrada neste filtro.</p>
+                <div className="text-center py-12 border border-[#1f2945] p-6 bg-[#13192f]">
+                  <FileText className="w-8 h-8 mx-auto text-neutral-300 mb-2 stroke-[1.2]" />
+                  <p className="text-xs text-neutral-300">Nenhuma comanda encontrada neste filtro.</p>
                 </div>
               ) : (
                 filteredComandas.map((cmd) => {
@@ -229,13 +229,13 @@ export const ComandasView: React.FC = () => {
                       onClick={() => setSelectedComandaId(cmd.id)}
                       className={`p-4 border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                         isSelected
-                          ? 'bg-neutral-900 border-white ring-1 ring-white/40'
-                          : 'bg-neutral-950 border-neutral-800 hover:border-neutral-700'
+                          ? 'bg-[#1a2342] border-[#ff5a1f] ring-1 ring-[#ff5a1f]/40'
+                          : 'bg-[#13192f] border-[#1f2945] hover:border-[#253257]'
                       }`}
                     >
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold px-1.5 py-0.5 border border-neutral-700 bg-neutral-800 text-white">
+                          <span className="font-mono text-xs font-bold px-1.5 py-0.5 border border-[#253257] bg-neutral-800 text-white">
                             #{cmd.number.toString().padStart(2, '0')}
                           </span>
                           <span className="font-semibold text-sm text-white">
@@ -244,12 +244,12 @@ export const ComandasView: React.FC = () => {
                         </div>
 
                         {cmd.customerName && (
-                          <p className="text-xs text-neutral-400">
+                          <p className="text-xs text-neutral-300">
                             Cliente: {cmd.customerName}
                           </p>
                         )}
 
-                        <div className="flex items-center gap-2 text-[11px] text-neutral-400">
+                        <div className="flex items-center gap-2 text-[11px] text-neutral-300">
                           <span>{cmd.items.length} itens</span>
                           <span>·</span>
                           <span className="capitalize">{cmd.status}</span>
@@ -263,10 +263,10 @@ export const ComandasView: React.FC = () => {
                         <span
                           className={`inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 mt-1 border ${
                             cmd.status === 'aberta'
-                              ? 'border-neutral-600 bg-neutral-800 text-white'
+                              ? 'border-[#303f6b] bg-neutral-800 text-white'
                               : cmd.status === 'fechando'
-                              ? 'border-white bg-white text-black'
-                              : 'border-neutral-800 bg-neutral-950 text-neutral-400'
+                              ? 'border-[#ff5a1f] bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold'
+                              : 'border-[#1f2945] bg-[#13192f] text-neutral-300'
                           }`}
                         >
                           {cmd.status === 'aberta'
@@ -286,12 +286,12 @@ export const ComandasView: React.FC = () => {
           {/* RIGHT: Active Comanda Detailed View (7 cols on lg) */}
           <div className="lg:col-span-7">
             {activeComanda ? (
-              <div className="bg-neutral-950 border border-neutral-800 p-5 sm:p-6 space-y-6">
+              <div className="bg-[#13192f] border border-[#1f2945] p-5 sm:p-6 space-y-6">
                 {/* Header Info */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-neutral-800">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-[#1f2945]">
                   <div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-base font-bold px-2.5 py-1 border border-neutral-700 bg-black text-white">
+                      <span className="font-mono text-base font-bold px-2.5 py-1 border border-[#253257] bg-[#0c1122] text-white">
                         Comanda #{activeComanda.number.toString().padStart(2, '0')}
                       </span>
                       <h2 className="font-editorial text-2xl font-bold text-white">
@@ -306,7 +306,7 @@ export const ComandasView: React.FC = () => {
                     )}
 
                     {activeComanda.notes && (
-                      <p className="text-xs text-neutral-400 italic mt-0.5">
+                      <p className="text-xs text-neutral-300 italic mt-0.5">
                         Obs: {activeComanda.notes}
                       </p>
                     )}
@@ -324,8 +324,8 @@ export const ComandasView: React.FC = () => {
                         }
                         className={`px-3 py-1.5 text-xs font-medium border cursor-pointer transition-colors ${
                           activeComanda.status === 'fechando'
-                            ? 'bg-white text-black border-white'
-                            : 'bg-neutral-900 text-neutral-300 border-neutral-700 hover:border-neutral-500'
+                            ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f]'
+                            : 'bg-[#1a2342] text-neutral-300 border-[#253257] hover:border-neutral-500'
                         }`}
                       >
                         {activeComanda.status === 'fechando' ? 'Pediu Conta' : 'Pedir Conta'}
@@ -333,7 +333,7 @@ export const ComandasView: React.FC = () => {
                     )}
 
                     {activeComanda.status === 'paga' && (
-                      <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-white text-black border border-white">
+                      <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border border-[#ff5a1f]">
                         Paga
                       </span>
                     )}
@@ -345,7 +345,7 @@ export const ComandasView: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => setIsAddItemModalOpen(true)}
-                      className="px-3 py-1.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Lançar Item</span>
@@ -353,7 +353,7 @@ export const ComandasView: React.FC = () => {
 
                     <button
                       onClick={() => setIsReceiptModalOpen(true)}
-                      className="px-3 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       <span>Conferência da Conta</span>
@@ -363,7 +363,7 @@ export const ComandasView: React.FC = () => {
                       onClick={() => {
                         setActiveView('caixa');
                       }}
-                      className="px-3 py-1.5 border border-neutral-700 bg-neutral-900 hover:bg-neutral-800 text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
                     >
                       <CreditCard className="w-3.5 h-3.5" />
                       <span>Ir ao Caixa Fechar</span>
@@ -373,7 +373,7 @@ export const ComandasView: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => setIsReceiptModalOpen(true)}
-                      className="px-3 py-1.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow"
+                      className="px-3 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow"
                     >
                       <Printer className="w-3.5 h-3.5 stroke-[2.5]" />
                       <span>Imprimir Conta / Recibo</span>
@@ -383,14 +383,14 @@ export const ComandasView: React.FC = () => {
 
                 {/* Items in the Comanda */}
                 <div className="space-y-3">
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-300">
                     Itens ({activeComanda.items.length})
                   </h3>
 
                   {activeComanda.items.length === 0 ? (
-                    <div className="text-center py-10 border border-dashed border-neutral-800 bg-neutral-900/50">
-                      <Wine className="w-6 h-6 mx-auto text-neutral-400 mb-2 stroke-[1.2]" />
-                      <p className="text-xs text-neutral-400">Comanda vazia</p>
+                    <div className="text-center py-10 border border-dashed border-[#1f2945] bg-[#1a2342]/60">
+                      <Wine className="w-6 h-6 mx-auto text-neutral-300 mb-2 stroke-[1.2]" />
+                      <p className="text-xs text-neutral-300">Comanda vazia</p>
                       <button
                         onClick={() => setIsAddItemModalOpen(true)}
                         className="mt-2 text-xs text-white underline hover:text-neutral-300 cursor-pointer"
@@ -399,15 +399,15 @@ export const ComandasView: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <div className="divide-y divide-neutral-800 border border-neutral-800">
+                    <div className="divide-y divide-neutral-800 border border-[#1f2945]">
                       {activeComanda.items.map((item) => (
                         <div
                           key={item.id}
-                          className="p-3 bg-neutral-900/40 flex items-center justify-between gap-3 text-xs"
+                          className="p-3 bg-[#1a2342]/50 flex items-center justify-between gap-3 text-xs"
                         >
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-white bg-black border border-neutral-700 px-1.5 py-0.2">
+                              <span className="font-mono font-bold text-white bg-[#0c1122] border border-[#253257] px-1.5 py-0.2">
                                 {item.quantity}x
                               </span>
                               <span className="font-medium text-white text-sm">
@@ -416,12 +416,12 @@ export const ComandasView: React.FC = () => {
                             </div>
 
                             {item.notes && (
-                              <p className="text-[11px] text-neutral-400 italic pl-6">
+                              <p className="text-[11px] text-neutral-300 italic pl-6">
                                 Obs: {item.notes}
                               </p>
                             )}
 
-                            <span className="text-[10px] text-neutral-400 pl-6 block">
+                            <span className="text-[10px] text-neutral-300 pl-6 block">
                               Lançado às {new Date(item.addedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
@@ -434,7 +434,7 @@ export const ComandasView: React.FC = () => {
                             {activeComanda.status !== 'paga' && (
                               <button
                                 onClick={() => removeItemFromComanda(activeComanda.id, item.id)}
-                                className="p-1 text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                                className="p-1 text-neutral-300 hover:text-white hover:bg-[#202b50] transition-colors"
                                 title="Cancelar / Estornar Item"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -448,7 +448,7 @@ export const ComandasView: React.FC = () => {
                 </div>
 
                 {/* Financial Summary & Service Fee */}
-                <div className="p-3 bg-neutral-900 border border-neutral-800 space-y-2 text-xs">
+                <div className="p-3 bg-[#1a2342] border border-[#1f2945] space-y-2 text-xs">
                   <div className="flex justify-between text-neutral-300">
                     <span>Subtotal:</span>
                     <span className="font-mono">{formatPrice(subtotal)}</span>
@@ -461,7 +461,7 @@ export const ComandasView: React.FC = () => {
                         checked={activeComanda.includeServiceCharge}
                         onChange={() => toggleServiceCharge(activeComanda.id)}
                         disabled={activeComanda.status === 'paga'}
-                        className="rounded-none border-neutral-700 bg-neutral-950 text-white focus:ring-0"
+                        className="rounded-none border-[#253257] bg-[#13192f] text-white focus:ring-0"
                       />
                       <span>Serviço (10%)</span>
                     </label>
@@ -470,15 +470,15 @@ export const ComandasView: React.FC = () => {
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center text-sm sm:text-base font-bold text-white pt-2 border-t border-neutral-800">
+                  <div className="flex justify-between items-center text-sm sm:text-base font-bold text-white pt-2 border-t border-[#1f2945]">
                     <span>TOTAL:</span>
                     <span className="font-mono text-lg">{formatPrice(totalAmount)}</span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="bg-neutral-950 border border-neutral-800 p-12 text-center text-neutral-400">
-                <FileText className="w-10 h-10 mx-auto mb-3 stroke-[1.2] text-neutral-400" />
+              <div className="bg-[#13192f] border border-[#1f2945] p-12 text-center text-neutral-300">
+                <FileText className="w-10 h-10 mx-auto mb-3 stroke-[1.2] text-neutral-300" />
                 <p className="text-sm font-semibold text-white">Selecione uma comanda</p>
               </div>
             )}
@@ -488,13 +488,13 @@ export const ComandasView: React.FC = () => {
 
       {/* Modal: Nova Comanda */}
       {isNewComandaModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-neutral-950 border border-neutral-700 p-6 space-y-5 text-white">
-            <div className="flex justify-between items-center border-b border-neutral-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-[#0c1122]/85 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-[#13192f] border border-[#253257] p-6 space-y-5 text-white">
+            <div className="flex justify-between items-center border-b border-[#1f2945] pb-3">
               <h3 className="font-editorial text-xl font-bold">Abrir Nova Comanda</h3>
               <button
                 onClick={() => setIsNewComandaModalOpen(false)}
-                className="text-neutral-400 hover:text-white"
+                className="text-neutral-300 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -511,7 +511,7 @@ export const ComandasView: React.FC = () => {
                   placeholder="Mesa 01"
                   value={newIdentifier}
                   onChange={(e) => setNewIdentifier(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-700 p-2.5 text-white focus:outline-none focus:border-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-white focus:outline-none focus:border-[#ff5a1f]"
                   autoFocus
                 />
               </div>
@@ -525,7 +525,7 @@ export const ComandasView: React.FC = () => {
                   placeholder="Ex: Lucas & Mariana"
                   value={newCustomerName}
                   onChange={(e) => setNewCustomerName(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-700 p-2.5 text-white focus:outline-none focus:border-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-white focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
@@ -538,7 +538,7 @@ export const ComandasView: React.FC = () => {
                   placeholder="Ex: Aniversário, prefere taças de cristal"
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-700 p-2.5 text-white focus:outline-none focus:border-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-white focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
@@ -546,13 +546,13 @@ export const ComandasView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsNewComandaModalOpen(false)}
-                  className="w-1/2 py-2.5 border border-neutral-700 text-neutral-300 hover:bg-neutral-900"
+                  className="w-1/2 py-2.5 border border-[#253257] text-neutral-300 hover:bg-[#1a2342]"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-white text-black font-semibold uppercase tracking-wider hover:bg-neutral-200"
+                  className="w-1/2 py-2.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-semibold uppercase tracking-wider hover:bg-neutral-200"
                 >
                   Abrir Comanda
                 </button>
@@ -564,18 +564,18 @@ export const ComandasView: React.FC = () => {
 
       {/* Modal: Lançar Item / Drink na Comanda */}
       {isAddItemModalOpen && activeComanda && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-neutral-950 border border-neutral-700 p-6 space-y-5 text-white max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center border-b border-neutral-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-[#0c1122]/90 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-[#13192f] border border-[#253257] p-6 space-y-5 text-white max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center border-b border-[#1f2945] pb-3">
               <div>
                 <h3 className="font-editorial text-xl font-bold">Lançar Item no Pedido</h3>
-                <p className="text-xs text-neutral-400">
+                <p className="text-xs text-neutral-300">
                   Comanda #{activeComanda.number.toString().padStart(2, '0')} · {activeComanda.identifier}
                 </p>
               </div>
               <button
                 onClick={() => setIsAddItemModalOpen(false)}
-                className="text-neutral-400 hover:text-white"
+                className="text-neutral-300 hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -588,7 +588,7 @@ export const ComandasView: React.FC = () => {
                 placeholder="Buscar produto..."
                 value={itemSearchQuery}
                 onChange={(e) => setItemSearchQuery(e.target.value)}
-                className="w-full bg-neutral-900 border border-neutral-700 p-2.5 text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-white"
+                className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-[#ff5a1f]"
               />
 
               <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none text-[11px]">
@@ -607,8 +607,8 @@ export const ComandasView: React.FC = () => {
                     onClick={() => setItemCategoryFilter(c.key)}
                     className={`px-2.5 py-1 border whitespace-nowrap ${
                       itemCategoryFilter === c.key
-                        ? 'bg-white text-black border-white font-bold'
-                        : 'bg-neutral-900 text-neutral-400 border-neutral-800 hover:text-white'
+                        ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f] font-bold'
+                        : 'bg-[#1a2342] text-neutral-300 border-[#1f2945] hover:text-white'
                     }`}
                   >
                     {c.label}
@@ -618,7 +618,7 @@ export const ComandasView: React.FC = () => {
             </div>
 
             {/* Product selection list */}
-            <div className="flex-1 overflow-y-auto divide-y divide-neutral-800 border border-neutral-800 pr-1 max-h-56">
+            <div className="flex-1 overflow-y-auto divide-y divide-neutral-800 border border-[#1f2945] pr-1 max-h-56">
               {filteredProductsToLaunch.map((prod) => {
                 const isChosen = selectedProductId === prod.id;
                 return (
@@ -627,13 +627,13 @@ export const ComandasView: React.FC = () => {
                     onClick={() => setSelectedProductId(prod.id)}
                     className={`p-3 flex items-center justify-between gap-3 text-xs cursor-pointer transition-colors ${
                       isChosen
-                        ? 'bg-white text-black'
-                        : 'bg-neutral-950 text-neutral-200 hover:bg-neutral-900'
+                        ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold'
+                        : 'bg-[#13192f] text-neutral-200 hover:bg-[#1a2342]'
                     }`}
                   >
                     <div>
                       <span className="font-semibold block">{prod.name}</span>
-                      <span className={`text-[10px] ${isChosen ? 'text-neutral-700' : 'text-neutral-400'}`}>
+                      <span className={`text-[10px] ${isChosen ? 'text-neutral-700' : 'text-neutral-300'}`}>
                         {CATEGORY_LABELS[prod.category]} · Estoque: {prod.stock} {prod.unit}
                       </span>
                     </div>
@@ -647,14 +647,14 @@ export const ComandasView: React.FC = () => {
             </div>
 
             {/* Quantity and Modifications/Observations */}
-            <div className="space-y-4 pt-2 border-t border-neutral-800 text-xs">
+            <div className="space-y-4 pt-2 border-t border-[#1f2945] text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-white">Quantidade:</span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setItemQuantity((prev) => Math.max(1, prev - 1))}
-                    className="w-8 h-8 border border-neutral-700 bg-neutral-900 text-white flex items-center justify-center hover:bg-neutral-800"
+                    className="w-8 h-8 border border-[#253257] bg-[#1a2342] text-white flex items-center justify-center hover:bg-[#202b50]"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
@@ -664,7 +664,7 @@ export const ComandasView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setItemQuantity((prev) => prev + 1)}
-                    className="w-8 h-8 border border-neutral-700 bg-neutral-900 text-white flex items-center justify-center hover:bg-neutral-800"
+                    className="w-8 h-8 border border-[#253257] bg-[#1a2342] text-white flex items-center justify-center hover:bg-[#202b50]"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -673,7 +673,7 @@ export const ComandasView: React.FC = () => {
 
               {/* Quick Observation Presets */}
               <div>
-                <span className="block text-neutral-400 mb-1.5 font-medium">
+                <span className="block text-neutral-300 mb-1.5 font-medium">
                   Observações rápidas:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -686,7 +686,7 @@ export const ComandasView: React.FC = () => {
                           prev ? `${prev}, ${obs}` : obs
                         )
                       }
-                      className="px-2 py-1 text-[11px] border border-neutral-800 bg-neutral-900 hover:border-neutral-600 text-neutral-300"
+                      className="px-2 py-1 text-[11px] border border-[#1f2945] bg-[#1a2342] hover:border-[#303f6b] text-neutral-300"
                     >
                       + {obs}
                     </button>
@@ -700,7 +700,7 @@ export const ComandasView: React.FC = () => {
                   placeholder="Observação personalizada..."
                   value={itemNotes}
                   onChange={(e) => setItemNotes(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-700 p-2 text-white placeholder-neutral-400 focus:outline-none focus:border-white"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white placeholder-neutral-400 focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
@@ -708,7 +708,7 @@ export const ComandasView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddItemModalOpen(false)}
-                  className="w-1/3 py-2.5 border border-neutral-700 text-neutral-300 hover:bg-neutral-900"
+                  className="w-1/3 py-2.5 border border-[#253257] text-neutral-300 hover:bg-[#1a2342]"
                 >
                   Cancelar
                 </button>
@@ -718,8 +718,8 @@ export const ComandasView: React.FC = () => {
                   onClick={handleLaunchItem}
                   className={`w-2/3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
                     selectedProductId
-                      ? 'bg-white text-black hover:bg-neutral-200 cursor-pointer'
-                      : 'bg-neutral-800 text-neutral-400 cursor-not-allowed'
+                      ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 cursor-pointer'
+                      : 'bg-neutral-800 text-neutral-300 cursor-not-allowed'
                   }`}
                 >
                   Confirmar e Lançar na Comanda
