@@ -13,6 +13,7 @@ import {
   Link as LinkIcon,
   HelpCircle,
 } from 'lucide-react';
+import { PompeiaLogo } from '../Common/PompeiaLogo';
 
 export const QrCodeView: React.FC = () => {
   const { setActiveView, setIsClientOnlyMode } = useApp();
@@ -116,7 +117,7 @@ export const QrCodeView: React.FC = () => {
     try {
       const dataUrl = canvasRef.current.toDataURL('image/png');
       const link = document.createElement('a');
-      const filename = `qrcode-honorato-${currentLabel.toLowerCase().replace(/\s+/g, '-')}.png`;
+      const filename = `qrcode-pompeia-${currentLabel.toLowerCase().replace(/\s+/g, '-')}.png`;
       link.download = filename;
       link.href = dataUrl;
       link.click();
@@ -343,42 +344,40 @@ export const QrCodeView: React.FC = () => {
             </span>
 
             {/* Printable Frame Preview */}
-            <div className="w-full max-w-sm bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold p-8 border-4 border-black text-center space-y-5 shadow-2xl">
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-8 h-8 border border-black flex items-center justify-center">
-                  <Wine className="w-5 h-5 text-black" />
-                </div>
+            <div className="w-full max-w-sm bg-[#13192f] text-white p-8 border-2 border-[#ff5a1f]/50 rounded-2xl text-center space-y-5 shadow-2xl">
+              <div className="flex items-center justify-center gap-3">
+                <PompeiaLogo className="w-10 h-10 border border-[#ff5a1f]/40" />
                 <div className="text-left">
-                  <span className="font-brand text-lg font-bold tracking-widest block leading-none">
-                    HONORATO
+                  <span className="font-brand text-lg font-bold tracking-widest block leading-none text-white">
+                    POMPÉIA
                   </span>
-                  <span className="text-[8px] tracking-[0.25em] font-bold uppercase block text-neutral-700">
+                  <span className="text-[8px] tracking-[0.25em] font-bold uppercase block text-[#ff5a1f] mt-0.5">
                     DRINKERIA
                   </span>
                 </div>
               </div>
 
-              <div className="py-1.5 border-y-2 border-black">
-                <span className="font-editorial text-lg font-bold tracking-wider uppercase">
+              <div className="py-2 border-y border-[#1f2945]">
+                <span className="font-editorial text-xl font-bold tracking-wider uppercase text-white">
                   {currentLabel}
                 </span>
               </div>
 
               {/* QR Code Container */}
-              <div className="p-3 bg-white border-2 border-black inline-block shadow-inner mx-auto">
+              <div className="p-3 bg-white rounded-xl inline-block shadow-lg mx-auto">
                 <canvas ref={canvasRef} className="mx-auto block" />
               </div>
 
               <div className="space-y-1 text-xs">
-                <p className="font-bold uppercase tracking-wider text-sm">
+                <p className="font-bold uppercase tracking-wider text-sm text-[#ff5a1f]">
                   Cardápio Digital de Coquetéis
                 </p>
-                <p className="text-[11px] text-neutral-800 leading-snug">
+                <p className="text-[11px] text-neutral-300 leading-snug">
                   Aponte a câmera do seu smartphone para conferir a carta completa de coquetéis autorais, doses e valores.
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-neutral-300 text-[10px] text-neutral-700 font-medium">
+              <div className="pt-2 border-t border-[#1f2945] text-[10px] text-neutral-400 font-medium">
                 Chame nosso atendente para registrar seu pedido.
               </div>
             </div>
@@ -386,15 +385,13 @@ export const QrCodeView: React.FC = () => {
         </div>
 
         {/* PRINT ONLY SECTION - Optimized for A4 or Table Tent Physical Print */}
-        <div className="print-only hidden p-8 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold min-h-screen">
+        <div className="print-only hidden p-8 bg-white text-black min-h-screen">
           <div className="max-w-md mx-auto border-4 border-black p-10 text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
-              <div className="w-12 h-12 border-2 border-black flex items-center justify-center">
-                <Wine className="w-7 h-7 text-black" />
-              </div>
+              <PompeiaLogo className="w-12 h-12 border-2 border-black" />
               <div className="text-left">
                 <h1 className="font-brand text-2xl font-bold tracking-widest leading-none">
-                  HONORATO
+                  POMPÉIA
                 </h1>
                 <span className="text-[10px] tracking-[0.25em] font-bold uppercase block text-neutral-700">
                   DRINKERIA
