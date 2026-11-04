@@ -300,7 +300,7 @@ export const GerenciaView: React.FC = () => {
     const lines: string[] = [];
 
     // Header metadata
-    lines.push(`HONORATO DRINKERIA - RELATÓRIO FINANCEIRO & OPERACIONAL`);
+    lines.push(`POMPÉIA DRINKERIA - RELATÓRIO FINANCEIRO & OPERACIONAL`);
     lines.push(`Período${separator}${activeReportData.label}`);
     lines.push(`Data de Emissão${separator}${new Date().toLocaleString('pt-BR')}`);
     lines.push(`Responsável${separator}${activeReportData.closedBy}`);
@@ -347,7 +347,7 @@ export const GerenciaView: React.FC = () => {
     const link = document.createElement('a');
     const safeDate = new Date().toISOString().split('T')[0];
     link.href = url;
-    link.download = `relatorio-honorato-${reportPeriod}-${safeDate}.csv`;
+    link.download = `relatorio-pompeia-${reportPeriod}-${safeDate}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -790,13 +790,13 @@ export const GerenciaView: React.FC = () => {
             <div className="flex justify-center">
               <div
                 id="a4-report"
-                className="a4-sheet bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-12 border border-neutral-400 shadow-2xl space-y-6 font-sans text-xs"
+                className="a4-sheet bg-white text-black w-full max-w-[210mm] min-h-[297mm] p-8 sm:p-12 border border-neutral-300 shadow-2xl space-y-6 font-sans text-xs"
               >
                 {/* Header */}
                 <div className="border-b-2 border-black pb-4 flex justify-between items-start">
                   <div>
                     <h1 className="font-brand text-2xl font-bold tracking-widest leading-none">
-                      HONORATO DRINKERIA
+                      POMPÉIA DRINKERIA
                     </h1>
                     <span className="text-[10px] uppercase font-bold text-neutral-600 block mt-1 tracking-wider">
                       Relatório Gerencial Executivo
@@ -1005,7 +1005,7 @@ export const GerenciaView: React.FC = () => {
                     <div>
                       <div className="border-b border-black pb-8" />
                       <p className="font-bold uppercase mt-1.5">Diretoria</p>
-                      <p className="text-[10px] text-neutral-600">Honorato Drinkeria</p>
+                      <p className="text-[10px] text-neutral-600">Pompéia Drinkeria</p>
                     </div>
                   </div>
                 </div>

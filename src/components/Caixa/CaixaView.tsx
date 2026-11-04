@@ -584,12 +584,12 @@ export const CaixaView: React.FC = () => {
 
                       {/* If PIX is selected */}
                       {paymentMethod === 'pix' && (
-                        <div className="p-4 bg-[#1a2342] border border-[#1f2945] space-y-2 text-center">
+                        <div className="p-4 bg-[#1a2342] border border-[#1f2945] space-y-2 text-center rounded-lg">
                           <p className="text-xs text-neutral-300 font-semibold">
-                            Chave PIX Honorato Drinkeria:
+                            Chave PIX Pompéia Drinkeria:
                           </p>
-                          <p className="font-mono text-xs bg-[#0c1122] p-2 border border-[#253257] text-white select-all">
-                            pix@honoratodrinkeria.com.br
+                          <p className="font-mono text-xs bg-[#0c1122] p-2 border border-[#253257] text-[#ff5a1f] font-bold select-all rounded">
+                            pix@pompeiadrinkeria.com.br
                           </p>
                           <p className="text-[11px] text-neutral-300">
                             Valor exato a transferir: <strong className="text-white">{formatPrice(selectedComandaTotal)}</strong>
@@ -1161,7 +1161,7 @@ export const CaixaView: React.FC = () => {
           <div className="max-w-2xl mx-auto bg-[#13192f] border border-[#1f2945] p-6 sm:p-8 space-y-6">
             <div className="text-center pb-4 border-b border-[#1f2945] space-y-1">
               <h2 className="font-brand text-2xl font-bold tracking-widest text-white">
-                HONORATO DRINKERIA
+                POMPÉIA DRINKERIA
               </h2>
               <p className="text-xs uppercase tracking-widest text-neutral-300">
                 Relatório de Fechamento de Caixa
@@ -1235,8 +1235,8 @@ export const CaixaView: React.FC = () => {
 
       {/* Modal: Sangria ou Suprimento */}
       {isMovementModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0c1122]/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-[#13192f] border border-[#253257] p-6 space-y-5 text-white">
+        <div className="fixed inset-0 z-50 bg-[#0c1122]/85 backdrop-blur-sm flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overflow-x-hidden pt-4 sm:pt-6 pb-6">
+          <div className="relative bg-[#13192f] border border-[#253257] w-full max-w-md max-h-[92dvh] overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-4 rounded-xl shadow-2xl my-auto box-border text-white">
             <div className="flex justify-between items-center border-b border-[#1f2945] pb-3">
               <h3 className="font-editorial text-xl font-bold">Movimentação de Caixa</h3>
               <button

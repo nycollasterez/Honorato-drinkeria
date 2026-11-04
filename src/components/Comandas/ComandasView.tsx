@@ -488,13 +488,14 @@ export const ComandasView: React.FC = () => {
 
       {/* Modal: Nova Comanda */}
       {isNewComandaModalOpen && (
-        <div className="fixed inset-0 z-50 bg-[#0c1122]/85 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-[#13192f] border border-[#253257] p-6 space-y-5 text-white">
+        <div className="fixed inset-0 z-50 bg-[#0c1122]/85 backdrop-blur-sm flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overflow-x-hidden pt-4 sm:pt-6 pb-6">
+          <div className="relative w-full max-w-md bg-[#13192f] border border-[#253257] p-4 sm:p-6 space-y-4 sm:space-y-5 text-white max-h-[92dvh] overflow-y-auto overflow-x-hidden rounded-xl shadow-2xl my-auto box-border">
             <div className="flex justify-between items-center border-b border-[#1f2945] pb-3">
               <h3 className="font-editorial text-xl font-bold">Abrir Nova Comanda</h3>
               <button
                 onClick={() => setIsNewComandaModalOpen(false)}
-                className="text-neutral-300 hover:text-white"
+                className="text-neutral-400 hover:text-white p-1 rounded transition-colors"
+                aria-label="Fechar"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -511,7 +512,7 @@ export const ComandasView: React.FC = () => {
                   placeholder="Mesa 01"
                   value={newIdentifier}
                   onChange={(e) => setNewIdentifier(e.target.value)}
-                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-white focus:outline-none focus:border-[#ff5a1f]"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 rounded text-white focus:outline-none focus:border-[#ff5a1f]"
                   autoFocus
                 />
               </div>
@@ -525,7 +526,7 @@ export const ComandasView: React.FC = () => {
                   placeholder="Ex: Lucas & Mariana"
                   value={newCustomerName}
                   onChange={(e) => setNewCustomerName(e.target.value)}
-                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-white focus:outline-none focus:border-[#ff5a1f]"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 rounded text-white focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
@@ -538,7 +539,7 @@ export const ComandasView: React.FC = () => {
                   placeholder="Ex: Aniversário, prefere taças de cristal"
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
-                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-white focus:outline-none focus:border-[#ff5a1f]"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 rounded text-white focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
@@ -546,13 +547,13 @@ export const ComandasView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsNewComandaModalOpen(false)}
-                  className="w-1/2 py-2.5 border border-[#253257] text-neutral-300 hover:bg-[#1a2342]"
+                  className="w-1/2 py-2.5 border border-[#253257] text-neutral-300 hover:bg-[#1a2342] rounded transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-semibold uppercase tracking-wider hover:bg-neutral-200"
+                  className="w-1/2 py-2.5 bg-[#ff5a1f] hover:bg-[#ff723f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold uppercase tracking-wider rounded transition-colors cursor-pointer"
                 >
                   Abrir Comanda
                 </button>
@@ -564,8 +565,8 @@ export const ComandasView: React.FC = () => {
 
       {/* Modal: Lançar Item / Drink na Comanda */}
       {isAddItemModalOpen && activeComanda && (
-        <div className="fixed inset-0 z-50 bg-[#0c1122]/90 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl bg-[#13192f] border border-[#253257] p-6 space-y-5 text-white max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 bg-[#0c1122]/90 backdrop-blur-sm flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overflow-x-hidden pt-4 sm:pt-6 pb-6">
+          <div className="relative w-full max-w-2xl bg-[#13192f] border border-[#253257] p-4 sm:p-6 space-y-4 sm:space-y-5 text-white max-h-[92dvh] overflow-y-auto overflow-x-hidden rounded-xl shadow-2xl my-auto box-border flex flex-col">
             <div className="flex justify-between items-center border-b border-[#1f2945] pb-3">
               <div>
                 <h3 className="font-editorial text-xl font-bold">Lançar Item no Pedido</h3>

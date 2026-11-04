@@ -51,7 +51,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
   const handleShareSummary = () => {
     const text =
-      `HONORATO DRINKERIA\n` +
+      `POMPÉIA DRINKERIA\n` +
       `Via do Cliente - Comanda #${comanda.number.toString().padStart(2, '0')} (${comanda.identifier})\n` +
       comanda.items
         .map((i) => `${i.quantity}x ${i.productName} - ${formatPrice(i.unitPrice * i.quantity)}`)
@@ -71,8 +71,8 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-      <div className="relative w-full max-w-md bg-neutral-950 border border-neutral-700 p-6 shadow-2xl text-white my-8 space-y-4">
+    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overflow-x-hidden pt-4 sm:pt-6 pb-6">
+      <div className="relative w-full max-w-md bg-neutral-950 border border-neutral-700 p-4 sm:p-6 shadow-2xl text-white my-auto space-y-4 rounded-xl box-border">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -285,7 +285,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           {/* Thermal Footer */}
           <div className="text-center pt-2 text-[10px] text-neutral-400 space-y-0.5">
             <p>Agradecemos a sua visita e preferência!</p>
-            <p className="font-brand tracking-widest text-neutral-300">HONORATO DRINKERIA</p>
+            <p className="font-brand tracking-widest text-neutral-300">POMPÉIA DRINKERIA</p>
           </div>
         </div>
 
