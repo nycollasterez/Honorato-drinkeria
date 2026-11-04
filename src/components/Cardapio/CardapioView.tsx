@@ -133,19 +133,19 @@ export const CardapioView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pb-24 touch-manipulation">
+    <div className="min-h-screen bg-[#0c1122] text-[#f0f4fc] pb-24 touch-manipulation">
       {/* Clean Hero Header */}
-      <section className="border-b border-neutral-900 bg-neutral-950 py-8 sm:py-10 px-4 text-center">
-        <div className="max-w-xl mx-auto space-y-2.5">
-          <div className="w-10 h-10 border border-neutral-700 bg-black flex items-center justify-center mx-auto">
-            <Wine className="w-5 h-5 text-white stroke-[1.4]" />
+      <section className="border-b border-[#1f2945] bg-[#0e1529] py-8 sm:py-10 px-4 text-center">
+        <div className="max-w-xl mx-auto space-y-3">
+          <div className="w-14 h-14 mx-auto rounded-2xl overflow-hidden border-2 border-[#ff5a1f] shadow-lg shadow-[#ff5a1f]/30">
+            <img src="./logo.jpg" alt="Pompéia Drinkeria" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).src = './favicon.svg'; }} />
           </div>
 
           <div>
             <h1 className="font-brand text-2xl sm:text-4xl font-bold tracking-[0.22em] text-white uppercase">
-              HONORATO
+              POMPÉIA
             </h1>
-            <p className="text-[10px] sm:text-xs tracking-[0.25em] text-neutral-400 uppercase mt-1">
+            <p className="text-[10px] sm:text-xs tracking-[0.28em] text-[#ff5a1f] uppercase font-bold mt-1">
               Drinkeria & Cocktail Bar
             </p>
           </div>
@@ -159,15 +159,15 @@ export const CardapioView: React.FC = () => {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
         {/* Search & Categories Bar (Sticky no celular e desktop com suporte a notch) */}
-        <div className="space-y-2.5 sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-30 bg-black/95 backdrop-blur-md py-2.5 sm:py-3 border-b border-neutral-800">
+        <div className="space-y-2.5 sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-30 bg-[#0c1122]/95 backdrop-blur-md py-2.5 sm:py-3 border-b border-[#1f2945]">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 pointer-events-none" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
             <input
               type="text"
               placeholder="Buscar drink, ingrediente, destilado..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-neutral-950 border border-neutral-800 pl-9 pr-9 py-2 text-xs sm:text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-white transition-colors"
+              className="w-full bg-[#13192f] border border-[#253257] pl-9 pr-9 py-2 text-xs sm:text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-[#ff5a1f] rounded-lg transition-colors"
             />
             {searchQuery && (
               <button
@@ -190,10 +190,10 @@ export const CardapioView: React.FC = () => {
                   key={cat.key}
                   type="button"
                   onClick={() => setSelectedCategory(cat.key)}
-                  className={`px-3 py-1.5 text-xs whitespace-nowrap transition-all border cursor-pointer select-none ${
+                  className={`px-3 py-1.5 text-xs whitespace-nowrap transition-all border cursor-pointer select-none rounded-md ${
                     active
-                      ? 'bg-white text-black border-white font-bold'
-                      : 'bg-neutral-950 text-neutral-400 border-neutral-800 hover:text-white hover:border-neutral-700'
+                      ? 'bg-[#ff5a1f] text-white border-[#ff5a1f] font-bold shadow-md shadow-[#ff5a1f]/30'
+                      : 'bg-[#13192f] text-neutral-300 border-[#253257] hover:text-white hover:border-[#ff5a1f]/60'
                   }`}
                 >
                   {cat.label}
@@ -204,15 +204,15 @@ export const CardapioView: React.FC = () => {
         </div>
 
         {/* Counter and phone hint */}
-        <div className="py-2.5 flex items-center justify-between text-[11px] sm:text-xs text-neutral-500">
+        <div className="py-2.5 flex items-center justify-between text-[11px] sm:text-xs text-neutral-400">
           <span>{filteredProducts.length} opções disponíveis</span>
-          <span className="sm:hidden text-neutral-500">Toque no card para ver receita</span>
+          <span className="sm:hidden text-[#8ba7ff]">Toque no card para ver receita</span>
         </div>
 
         {/* Product Cards */}
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-16 border border-neutral-900 bg-neutral-950 my-6">
-            <GlassWater className="w-8 h-8 mx-auto text-neutral-600 mb-2" />
+          <div className="text-center py-16 border border-[#1f2945] bg-[#13192f] rounded-xl my-6">
+            <GlassWater className="w-8 h-8 mx-auto text-neutral-500 mb-2" />
             <p className="text-sm text-neutral-300">Nenhum item encontrado</p>
           </div>
         ) : (
@@ -233,14 +233,14 @@ export const CardapioView: React.FC = () => {
                     if (isTouchDevice) setActiveMobileId(prod.id);
                     setActiveModalProduct(prod);
                   }}
-                  className={`group border bg-neutral-950 transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden relative ${
+                  className={`group border bg-[#13192f] rounded-xl transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden relative ${
                     isCardActive
-                      ? 'border-neutral-400 ring-1 ring-white/20 shadow-xl shadow-black/80'
-                      : 'border-neutral-850 hover:border-neutral-500'
+                      ? 'border-[#ff5a1f] ring-2 ring-[#ff5a1f]/40 shadow-xl shadow-black/80'
+                      : 'border-[#1f2945] hover:border-[#ff5a1f]/60'
                   }`}
                 >
                   {/* Photo: no computador colore no hover do mouse; no celular colore no scroll focal */}
-                  <div className="relative aspect-16/10 overflow-hidden bg-neutral-900">
+                  <div className="relative aspect-16/10 overflow-hidden bg-[#0c1122]">
                     <img
                       src={prod.imageUrl}
                       alt={prod.name}
@@ -254,22 +254,22 @@ export const CardapioView: React.FC = () => {
 
                     {/* Badge da categoria */}
                     <div className="absolute top-2 left-2">
-                      <span className="bg-black/85 backdrop-blur-sm border border-neutral-700 text-white text-[9px] uppercase tracking-wider px-2 py-0.5 font-medium">
+                      <span className="bg-[#0c1122]/90 backdrop-blur-sm border border-[#ff5a1f]/40 text-[#ff5a1f] text-[9px] uppercase tracking-wider px-2 py-0.5 font-bold rounded">
                         {CATEGORY_LABELS[prod.category] || prod.category}
                       </span>
                     </div>
 
                     {/* Badge de Volume */}
                     {prod.volume && (
-                      <div className="absolute bottom-2 left-2 text-[10px] text-neutral-300 bg-black/80 backdrop-blur-sm px-2 py-0.5 font-mono border border-neutral-800">
+                      <div className="absolute bottom-2 left-2 text-[10px] text-neutral-300 bg-[#0c1122]/85 backdrop-blur-sm px-2 py-0.5 font-mono border border-[#1f2945] rounded">
                         {prod.volume}
                       </div>
                     )}
 
                     {/* Indicador de esgotado */}
                     {!prod.isAvailable && (
-                      <div className="absolute inset-0 bg-black/85 flex items-center justify-center">
-                        <span className="border border-white/60 text-white text-[10px] uppercase px-2.5 py-1 font-semibold tracking-wider">
+                      <div className="absolute inset-0 bg-[#0c1122]/90 flex items-center justify-center">
+                        <span className="border border-[#ff5a1f] text-[#ff5a1f] text-[10px] uppercase px-2.5 py-1 font-bold tracking-wider rounded">
                           Esgotado
                         </span>
                       </div>
@@ -284,21 +284,21 @@ export const CardapioView: React.FC = () => {
                           {prod.name}
                         </h3>
                         {/* Preço em destaque */}
-                        <span className="text-base sm:text-lg font-bold text-white font-mono shrink-0">
+                        <span className="text-base sm:text-lg font-bold text-[#ff5a1f] font-mono shrink-0">
                           {formatPrice(prod.price)}
                         </span>
                       </div>
 
-                      <p className="text-xs text-neutral-400 line-clamp-2 mt-1.5 leading-relaxed">
+                      <p className="text-xs text-neutral-300 line-clamp-2 mt-1.5 leading-relaxed">
                         {prod.description}
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-neutral-900 flex items-center justify-between text-xs">
-                      <span className="text-[11px] text-neutral-400">
+                    <div className="pt-2 border-t border-[#1f2945] flex items-center justify-between text-xs">
+                      <span className="text-[11px] text-[#8ba7ff]">
                         {prod.alcoholContent || ''}
                       </span>
-                      <span className="text-[10px] text-neutral-500 uppercase tracking-wider group-hover:text-white transition-colors flex items-center gap-1">
+                      <span className="text-[10px] text-neutral-400 uppercase tracking-wider group-hover:text-[#ff5a1f] transition-colors flex items-center gap-1 font-semibold">
                         <span>Ver detalhes</span>
                         <span>→</span>
                       </span>
@@ -311,8 +311,8 @@ export const CardapioView: React.FC = () => {
         )}
 
         {/* Minimal Footer */}
-        <footer className="mt-14 pt-6 border-t border-neutral-900 text-center text-xs text-neutral-500 space-y-1">
-          <p className="font-brand tracking-widest uppercase text-neutral-400">Honorato Drinkeria</p>
+        <footer className="mt-14 pt-6 border-t border-[#1f2945] text-center text-xs text-neutral-400 space-y-1">
+          <p className="font-brand tracking-widest uppercase text-[#ff5a1f] font-bold">Pompéia Drinkeria</p>
           <p>Aprecie com moderação · Venda proibida para menores de 18 anos.</p>
         </footer>
       </div>
@@ -324,28 +324,28 @@ export const CardapioView: React.FC = () => {
           onClick={() => setActiveModalProduct(null)}
         >
           <div
-            className="relative w-full max-w-md bg-neutral-950 border border-neutral-700 max-h-[92dvh] overflow-y-auto shadow-2xl my-auto"
+            className="relative w-full max-w-md bg-[#13192f] border border-[#ff5a1f]/40 max-h-[92dvh] overflow-y-auto shadow-2xl my-auto rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Botão fechar com alvo de toque touch de 44px */}
             <button
               type="button"
               onClick={() => setActiveModalProduct(null)}
-              className="absolute top-3 right-3 z-20 min-w-[40px] min-h-[40px] p-2 bg-black/85 border border-neutral-700 text-white hover:bg-white hover:text-black flex items-center justify-center transition-colors cursor-pointer"
+              className="absolute top-3 right-3 z-20 min-w-[40px] min-h-[40px] p-2 bg-[#0c1122]/90 border border-[#253257] text-white hover:border-[#ff5a1f] hover:text-[#ff5a1f] flex items-center justify-center transition-colors cursor-pointer rounded-full"
               aria-label="Fechar detalhes"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* Foto no modal em cores reais para o cliente ver o drink */}
-            <div className="relative aspect-16/10 bg-neutral-900 overflow-hidden">
+            <div className="relative aspect-16/10 bg-[#0c1122] overflow-hidden">
               <img
                 src={activeModalProduct.imageUrl}
                 alt={activeModalProduct.name}
                 className="w-full h-full object-cover transition-all duration-500"
               />
               <div className="absolute top-3 left-3">
-                <span className="bg-black/90 border border-neutral-700 text-white text-[10px] uppercase tracking-wider px-2 py-0.5 font-mono">
+                <span className="bg-[#0c1122]/90 border border-[#ff5a1f]/50 text-[#ff5a1f] text-[10px] uppercase tracking-wider px-2.5 py-0.5 font-bold rounded">
                   {CATEGORY_LABELS[activeModalProduct.category] || activeModalProduct.category}
                 </span>
               </div>
@@ -357,7 +357,7 @@ export const CardapioView: React.FC = () => {
                   <h2 className="font-editorial text-xl sm:text-2xl font-bold text-white">
                     {activeModalProduct.name}
                   </h2>
-                  <span className="text-lg sm:text-xl font-bold text-white font-mono shrink-0">
+                  <span className="text-lg sm:text-xl font-bold text-[#ff5a1f] font-mono shrink-0">
                     {formatPrice(activeModalProduct.price)}
                   </span>
                 </div>
@@ -367,13 +367,13 @@ export const CardapioView: React.FC = () => {
               </div>
 
               {/* Specs */}
-              <div className="grid grid-cols-2 gap-2 py-2.5 border-y border-neutral-800 text-xs text-neutral-400">
+              <div className="grid grid-cols-2 gap-2 py-2.5 border-y border-[#1f2945] text-xs text-neutral-300">
                 <div>
-                  <span className="block text-[10px] uppercase tracking-wider text-neutral-500">Volume</span>
+                  <span className="block text-[10px] uppercase tracking-wider text-neutral-400">Volume</span>
                   <span className="text-white font-medium">{activeModalProduct.volume || 'Dose'}</span>
                 </div>
                 <div>
-                  <span className="block text-[10px] uppercase tracking-wider text-neutral-500">Teor Alcoólico</span>
+                  <span className="block text-[10px] uppercase tracking-wider text-neutral-400">Teor Alcoólico</span>
                   <span className="text-white font-medium">{activeModalProduct.alcoholContent || 'N/A'}</span>
                 </div>
               </div>
@@ -381,10 +381,10 @@ export const CardapioView: React.FC = () => {
               {/* Ingredients */}
               {activeModalProduct.ingredients && activeModalProduct.ingredients.length > 0 && (
                 <div className="text-xs space-y-1.5">
-                  <span className="text-[10px] uppercase font-semibold text-neutral-400 block tracking-wider">
+                  <span className="text-[10px] uppercase font-semibold text-[#8ba7ff] block tracking-wider">
                     Composição & Ingredientes:
                   </span>
-                  <p className="text-neutral-300 leading-relaxed">
+                  <p className="text-neutral-200 leading-relaxed">
                     {activeModalProduct.ingredients.join(' · ')}
                   </p>
                 </div>
@@ -392,7 +392,7 @@ export const CardapioView: React.FC = () => {
 
               {/* Tasting notes */}
               {activeModalProduct.tastingNotes && (
-                <div className="p-3 bg-neutral-900/90 text-xs italic text-neutral-300 border border-neutral-800 leading-relaxed">
+                <div className="p-3 bg-[#0c1122]/90 text-xs italic text-neutral-300 border border-[#1f2945] rounded-lg leading-relaxed">
                   "{activeModalProduct.tastingNotes}"
                 </div>
               )}
@@ -401,7 +401,7 @@ export const CardapioView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveModalProduct(null)}
-                className="w-full py-3 bg-white text-black font-bold text-xs uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer"
+                className="w-full py-3 bg-[#ff5a1f] text-white font-bold text-xs uppercase tracking-wider hover:bg-[#ff6f3b] transition-colors cursor-pointer rounded-xl shadow-lg shadow-[#ff5a1f]/30"
               >
                 Voltar ao Cardápio
               </button>

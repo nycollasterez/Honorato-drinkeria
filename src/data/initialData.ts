@@ -149,7 +149,7 @@ export const INITIAL_PRODUCTS: Product[] = [
   // COQUETÉIS AUTORAIS
   {
     id: 'prod-aut-1',
-    name: 'Honorato Smoked Old Fashioned',
+    name: 'Pompéia Smoked Old Fashioned',
     category: 'autorais',
     description: 'Bourbon envelhecido em carvalho, xarope de rapadura artesanal, bitter aromático da casa e defumação viva com lascas de canela e cerejeira.',
     ingredients: ['Bourbon Whiskey', 'Rapadura Reduzida', 'Angostura Aromatic Bitters', 'Casca de Laranja Bahia', 'Defumação com Madeira de Cerejeira'],

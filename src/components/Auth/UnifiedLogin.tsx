@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import {
-  Wine,
   Lock,
   ArrowRight,
   ShieldCheck,
@@ -9,6 +8,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react';
+import { PompeiaLogo } from '../Common/PompeiaLogo';
 
 export const UnifiedLogin: React.FC = () => {
   const { loginWithPin } = useApp();
@@ -48,7 +48,7 @@ export const UnifiedLogin: React.FC = () => {
   const handleSubmitPin = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!pinInput.trim()) {
-      setPinError('Digite o seu PIN de 4 dígitos.');
+      setPinError('Digite o seu PIN de 4 dígitos');
       return;
     }
     processLogin(pinInput.trim());
@@ -64,30 +64,28 @@ export const UnifiedLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col justify-between p-4 sm:p-6 select-none touch-manipulation login-safe-container">
+    <div className="min-h-screen bg-[#0c1122] text-[#f0f4fc] flex flex-col justify-between p-4 sm:p-6 select-none touch-manipulation login-safe-container">
       {/* Brand Header */}
       <div className="max-w-sm mx-auto w-full text-center pt-10 sm:pt-14 space-y-3">
-        <div className="inline-flex items-center justify-center w-14 h-14 border border-neutral-700 bg-neutral-950 mx-auto shadow-lg">
-          <Wine className="w-7 h-7 text-white stroke-[1.4]" />
-        </div>
+        <PompeiaLogo className="w-16 h-16 mx-auto rounded-2xl shadow-xl shadow-[#ff5a1f]/20 border-2 border-[#ff5a1f]" />
 
         <div>
           <h1 className="font-brand text-2xl sm:text-3xl font-bold tracking-[0.25em] text-white uppercase">
-            HONORATO
+            POMPÉIA
           </h1>
-          <p className="text-[10px] sm:text-[11px] tracking-[0.3em] text-neutral-400 uppercase mt-0.5">
+          <p className="text-[10px] sm:text-[11px] tracking-[0.3em] text-[#ff5a1f] uppercase font-bold mt-0.5">
             Drinkeria · Terminal da Equipe
           </p>
         </div>
       </div>
 
       {/* Main Login Card */}
-      <div className="max-w-sm mx-auto w-full my-auto bg-neutral-950 border border-neutral-800 p-6 sm:p-8 space-y-6 shadow-2xl">
+      <div className="max-w-sm mx-auto w-full my-auto bg-[#13192f] border border-[#ff5a1f]/30 p-6 sm:p-8 space-y-6 shadow-2xl rounded-2xl">
         <div className="text-center space-y-1">
-          <span className="text-[11px] text-neutral-400 font-medium uppercase tracking-wider block">
+          <span className="text-[11px] text-[#8ba7ff] font-semibold uppercase tracking-wider block">
             Acesso Restrito
           </span>
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-neutral-400">
             Digite seu PIN numérico de 4 dígitos no teclado
           </p>
         </div>
@@ -101,8 +99,8 @@ export const UnifiedLogin: React.FC = () => {
                 key={idx}
                 className={`w-4 h-4 rounded-full border transition-all duration-200 ${
                   filled
-                    ? 'bg-white border-white scale-125 shadow-md shadow-white/40'
-                    : 'bg-neutral-900 border-neutral-700'
+                    ? 'bg-[#ff5a1f] border-[#ff5a1f] scale-125 shadow-md shadow-[#ff5a1f]/50'
+                    : 'bg-[#0c1122] border-[#253257]'
                 }`}
               />
             );
@@ -123,49 +121,49 @@ export const UnifiedLogin: React.FC = () => {
               placeholder="••••"
               autoComplete="off"
               autoFocus
-              className="w-full bg-neutral-900 border border-neutral-700 py-3.5 px-4 text-center font-mono text-2xl tracking-[0.5em] text-white placeholder-neutral-600 focus:outline-none focus:border-white transition-colors"
+              className="w-full bg-[#0c1122] border border-[#253257] py-3.5 px-4 text-center font-mono text-2xl tracking-[0.5em] text-white placeholder-neutral-600 focus:outline-none focus:border-[#ff5a1f] rounded-xl transition-colors"
             />
 
             <button
               type="button"
               onClick={() => setShowNumbers(!showNumbers)}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white p-1 cursor-pointer"
-              title={showNumbers ? 'Ocultar' : 'Revelar dígitos'}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              title={showNumbers ? 'Ocultar dígitos' : 'Mostrar dígitos'}
             >
               {showNumbers ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
 
-          {/* Feedback or Error Message */}
-          {loggingInRole && (
-            <div className="p-3 bg-neutral-900 border border-white text-white text-xs font-semibold flex items-center justify-center gap-2 animate-pulse">
-              <ShieldCheck className="w-4 h-4 text-white" />
-              <span>Acessando {loggingInRole}...</span>
+          {/* Feedback Messages */}
+          {pinError && (
+            <div className="p-3 bg-[#2a131b] border border-[#ff5a1f]/50 text-white text-xs flex items-center gap-2 animate-shake rounded-lg">
+              <AlertCircle className="w-4 h-4 text-[#ff5a1f] shrink-0" />
+              <span>{pinError}</span>
             </div>
           )}
 
-          {pinError && (
-            <div className="p-3 bg-neutral-900 border border-neutral-600 text-neutral-300 text-xs flex items-center justify-center gap-2">
-              <AlertCircle className="w-4 h-4 text-white shrink-0" />
-              <span>{pinError}</span>
+          {loggingInRole && (
+            <div className="p-3 bg-[#112338] border border-[#8ba7ff]/60 text-white text-xs flex items-center justify-center gap-2 rounded-lg">
+              <ShieldCheck className="w-4 h-4 text-[#8ba7ff] shrink-0" />
+              <span>Autenticado como <strong>{loggingInRole}</strong>...</span>
             </div>
           )}
 
           <button
             type="submit"
-            disabled={pinInput.length === 0}
-            className="w-full py-3.5 bg-white text-black font-bold uppercase tracking-wider text-xs hover:bg-neutral-200 disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-lg"
+            disabled={!pinInput.trim()}
+            className="w-full py-3 bg-[#ff5a1f] text-white font-bold uppercase tracking-wider text-xs hover:bg-[#ff6f3b] transition-all cursor-pointer flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-[#ff5a1f]/30 rounded-xl"
           >
-            <span>Entrar no Sistema</span>
+            <span>Entrar</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
       </div>
 
-      {/* Footer */}
-      <footer className="text-center text-[10px] text-neutral-600 pb-4">
-        HONORATO DRINKERIA · SISTEMA OPERACIONAL
-      </footer>
+      {/* Footer Info */}
+      <div className="max-w-sm mx-auto w-full text-center pb-4 text-[10px] text-neutral-400 tracking-wider">
+        <span>POMPÉIA DRINKERIA · SISTEMA OPERACIONAL</span>
+      </div>
     </div>
   );
 };

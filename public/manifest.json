@@ -1,13 +1,13 @@
 {
-  "name": "Drinkeria Honorato",
-  "short_name": "Drinkeria Honorato",
-  "description": "Honorato Drinkeria - Cardápio Digital, Comandas & Frente de Caixa PDV",
+  "name": "Pompéia Drinkeria",
+  "short_name": "Pompéia",
+  "description": "Pompéia Drinkeria - Cardápio Digital, Comandas & Frente de Caixa PDV",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#0c1122",
+  "theme_color": "#0c1122",
   "categories": ["food", "business", "lifestyle"],
   "icons": [
     {

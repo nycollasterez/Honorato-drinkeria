@@ -1014,7 +1014,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       date: todayStr,
       openedAt: cashRegister.openedAt,
       closedAt: new Date().toISOString(),
-      closedBy: closedBy || 'Gerência Honorato',
+      closedBy: closedBy || 'Gerência Pompéia',
       initialCash: cashRegister.initialCash,
       finalCashBalance: cashRegister.currentCashBalance,
       totalRevenue: cashRegister.totalRevenue,

@@ -5,12 +5,19 @@
     --font-cinzel: 'Cinzel', serif;
     --font-serif: 'Playfair Display', Georgia, serif;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    
+    /* Pompéia Drinkeria Official Palette */
+    --color-bg-base: #0c1122;
+    --color-bg-card: #13192f;
+    --color-bg-card-hover: #19213d;
+    --color-primary: #ff5a1f;
+    --color-accent-blue: #8ba7ff;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #050505;
-    color: #f5f5f5;
+    background-color: #0c1122;
+    color: #f0f4fc;
   }
 }
 
@@ -27,20 +34,20 @@
   font-family: var(--font-sans);
 }
 
-/* Custom scrollbars in monochrome */
+/* Custom scrollbars in Pompéia Navy & Orange */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: #0c1122;
 }
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: #242e4d;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #404040;
+  background: #ff5a1f;
 }
 
 /* ==================================================================== */

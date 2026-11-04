@@ -43,7 +43,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   // Date and 30-day validity calculation
   const closedDate = comanda.closedAt ? new Date(comanda.closedAt) : new Date();
   const expirationDate = new Date(closedDate.getTime() + 30 * 24 * 60 * 60 * 1000);
-  const authCode = `HON-${Math.abs(comanda.id.split('').reduce((a, b) => (a << 5) - a + b.charCodeAt(0), 0) % 9000 + 1000)}-${closedDate.getFullYear()}`;
+  const authCode = `POM-${Math.abs(comanda.id.split('').reduce((a, b) => (a << 5) - a + b.charCodeAt(0), 0) % 9000 + 1000)}-${closedDate.getFullYear()}`;
 
   const handlePrint = () => {
     window.print();
@@ -114,7 +114,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           {/* Header */}
           <div className="text-center pb-3 border-b border-dashed border-neutral-700 space-y-1">
             <h2 className="font-brand text-lg font-bold tracking-widest text-white">
-              HONORATO DRINKERIA
+              POMPÉIA DRINKERIA
             </h2>
 
             {activeReceiptType === 'cliente' ? (

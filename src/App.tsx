@@ -49,10 +49,10 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center p-6 text-center">
-          <div className="max-w-md bg-neutral-950 border border-neutral-800 p-8 space-y-4">
+        <div className="min-h-screen bg-[#0c1122] text-[#f0f4fc] flex items-center justify-center p-6 text-center">
+          <div className="max-w-md bg-[#13192f] border border-[#ff5a1f]/30 p-8 space-y-4 rounded-2xl shadow-2xl">
             <h2 className="font-brand text-2xl font-bold text-white uppercase tracking-widest">
-              HONORATO
+              POMPÉIA
             </h2>
             <p className="text-xs text-neutral-300">
               Ocorreu um imprevisto na visualização.
@@ -90,7 +90,7 @@ const MainLayout: React.FC = () => {
   // STRICT CLIENT VIEW: Client has access ONLY to the Cardápio
   if (currentUser.role === 'cliente') {
     return (
-      <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
+      <div className="min-h-screen bg-[#0c1122] text-[#f0f4fc] selection:bg-[#ff5a1f] selection:text-white">
         <Navbar />
         <main>
           <CardapioView />
@@ -101,7 +101,7 @@ const MainLayout: React.FC = () => {
 
   // STAFF ROLES: Full layout with authorized tabs
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-white selection:text-black">
+    <div className="min-h-screen bg-[#0c1122] text-[#f0f4fc] selection:bg-[#ff5a1f] selection:text-white">
       <Navbar />
 
       <main>
