@@ -1,6 +1,6 @@
 -- ====================================================================
--- HONORATO DRINKERIA - ESTRUTURA DO BANCO DE DADOS (MYSQL / HOSTGATOR)
--- Versão: 1.0 (Plano M / cPanel / phpMyAdmin)
+-- POMPÉIA DRINKERIA - ESTRUTURA DO BANCO DE DADOS (MYSQL / HOSTGATOR)
+-- Versão: 2.0 (HostGator cPanel / phpMyAdmin)
 -- ====================================================================
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -8,7 +8,7 @@ START TRANSACTION;
 SET time_zone = "-03:00";
 
 -- --------------------------------------------------------
--- 1. Tabela: products (Cardápio e Estoque de Drinks/Itens)
+-- 1. Tabela: products (Cardápio, Custos e Estoque)
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `products` (
   `id` VARCHAR(64) NOT NULL,
@@ -21,6 +21,8 @@ CREATE TABLE IF NOT EXISTS `products` (
   `volume` VARCHAR(50) NULL,
   `alcohol_content` VARCHAR(50) NULL,
   `price` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  `cost_price` DECIMAL(10,2) NULL DEFAULT NULL,
+  `image_focal_point` VARCHAR(20) NOT NULL DEFAULT 'center',
   `stock` INT NOT NULL DEFAULT 0,
   `min_stock_alert` INT NOT NULL DEFAULT 0,
   `unit` VARCHAR(20) NOT NULL DEFAULT 'un',
@@ -50,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `bottles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 3. Tabela: comandas (Comandas Numeradas do Salão e Balcão)
+-- 3. Tabela: comandas (Comandas Numeradas de 1 a 100)
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `comandas` (
   `id` VARCHAR(64) NOT NULL,
@@ -58,18 +60,23 @@ CREATE TABLE IF NOT EXISTS `comandas` (
   `identifier` VARCHAR(100) NOT NULL,
   `customer_name` VARCHAR(150) NULL,
   `status` ENUM('aberta', 'fechando', 'paga', 'cancelada') NOT NULL DEFAULT 'aberta',
+  `cash_register_session_id` VARCHAR(64) NULL DEFAULT NULL,
+  `cancellation_reason` TEXT NULL DEFAULT NULL,
+  `cancelled_by` VARCHAR(150) NULL DEFAULT NULL,
+  `cancelled_at` DATETIME NULL DEFAULT NULL,
   `opened_at` DATETIME NOT NULL,
   `closed_at` DATETIME NULL,
   `notes` TEXT NULL,
-  `include_service_charge` TINYINT(1) NOT NULL DEFAULT 1,
-  `service_charge_percent` INT NOT NULL DEFAULT 10,
+  `include_service_charge` TINYINT(1) NOT NULL DEFAULT 0,
+  `service_charge_percent` INT NOT NULL DEFAULT 0,
   `payment_method` VARCHAR(50) NULL,
   `total_paid` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   INDEX (`number`),
-  INDEX (`status`)
+  INDEX (`status`),
+  INDEX (`cash_register_session_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -81,6 +88,7 @@ CREATE TABLE IF NOT EXISTS `comanda_items` (
   `product_id` VARCHAR(64) NOT NULL,
   `product_name` VARCHAR(255) NOT NULL,
   `unit_price` DECIMAL(10,2) NOT NULL,
+  `cost_price` DECIMAL(10,2) NULL DEFAULT NULL,
   `quantity` INT NOT NULL DEFAULT 1,
   `notes` TEXT NULL,
   `added_at` DATETIME NOT NULL,
@@ -116,10 +124,11 @@ CREATE TABLE IF NOT EXISTS `transactions` (
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `cash_register` (
   `id` INT NOT NULL DEFAULT 1,
-  `is_open` TINYINT(1) NOT NULL DEFAULT 1,
+  `session_id` VARCHAR(64) NULL DEFAULT NULL,
+  `is_open` TINYINT(1) NOT NULL DEFAULT 0,
   `opened_at` DATETIME NOT NULL,
-  `initial_cash` DECIMAL(10,2) NOT NULL DEFAULT 300.00,
-  `current_cash_balance` DECIMAL(10,2) NOT NULL DEFAULT 300.00,
+  `initial_cash` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  `current_cash_balance` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `total_revenue` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `total_service_charge` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `by_payment_method_json` TEXT NOT NULL,
@@ -128,18 +137,19 @@ CREATE TABLE IF NOT EXISTS `cash_register` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
--- 7. Tabela: daily_closing_reports (Relatórios A4 Fechados)
+-- 7. Tabela: daily_closing_reports (Relatórios de Fechamento de Caixa)
 -- --------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `daily_closing_reports` (
   `id` VARCHAR(64) NOT NULL,
   `date` DATE NOT NULL,
+  `session_id` VARCHAR(64) NULL DEFAULT NULL,
   `opened_at` DATETIME NOT NULL,
   `closed_at` DATETIME NOT NULL,
   `closed_by` VARCHAR(150) NOT NULL,
   `initial_cash` DECIMAL(10,2) NOT NULL,
   `final_cash_balance` DECIMAL(10,2) NOT NULL,
   `total_revenue` DECIMAL(10,2) NOT NULL,
-  `total_service_charge` DECIMAL(10,2) NOT NULL,
+  `total_service_charge` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
   `comandas_count` INT NOT NULL DEFAULT 0,
   `transactions_count` INT NOT NULL DEFAULT 0,
   `by_payment_method_json` TEXT NOT NULL,
@@ -147,7 +157,8 @@ CREATE TABLE IF NOT EXISTS `daily_closing_reports` (
   `notes` TEXT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX (`date`)
+  INDEX (`date`),
+  INDEX (`session_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -160,12 +171,7 @@ CREATE TABLE IF NOT EXISTS `staff_pins` (
   PRIMARY KEY (`role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Inserir dados padrão de estado do caixa (fechado para início de operação)
-INSERT INTO `cash_register` (`id`, `is_open`, `opened_at`, `initial_cash`, `current_cash_balance`, `total_revenue`, `total_service_charge`, `by_payment_method_json`)
-VALUES (1, 0, NOW(), 0.00, 0.00, 0.00, 0.00, '{"pix":0,"cartao_credito":0,"cartao_debito":0,"dinheiro":0,"misto":0}')
-ON DUPLICATE KEY UPDATE `id` = 1;
-
--- Inserir PINs da equipe
+-- Inserir PINs da equipe (senhas padrão)
 INSERT INTO `staff_pins` (`role`, `title`, `pin`) VALUES
 ('admin', 'Gerência', '0000'),
 ('garcom', 'Garçom', '1234'),
@@ -174,3 +180,26 @@ INSERT INTO `staff_pins` (`role`, `title`, `pin`) VALUES
 ON DUPLICATE KEY UPDATE `pin` = VALUES(`pin`);
 
 COMMIT;
+
+-- ====================================================================
+-- SCRIPT DE ATUALIZAÇÃO / MIGRAÇÃO (PARA BANCOS JÁ EXISTENTES)
+-- Se você já tem tabelas criadas no phpMyAdmin, execute os comandos abaixo:
+-- ====================================================================
+
+-- 1. Novos campos em produtos:
+-- ALTER TABLE `products` ADD COLUMN IF NOT EXISTS `cost_price` DECIMAL(10,2) NULL DEFAULT NULL AFTER `price`;
+-- ALTER TABLE `products` ADD COLUMN IF NOT EXISTS `image_focal_point` VARCHAR(20) NOT NULL DEFAULT 'center' AFTER `cost_price`;
+
+-- 2. Novos campos e status em comandas:
+-- ALTER TABLE `comandas` ADD COLUMN IF NOT EXISTS `cash_register_session_id` VARCHAR(64) NULL DEFAULT NULL AFTER `status`;
+-- ALTER TABLE `comandas` ADD COLUMN IF NOT EXISTS `cancellation_reason` TEXT NULL DEFAULT NULL AFTER `cash_register_session_id`;
+-- ALTER TABLE `comandas` ADD COLUMN IF NOT EXISTS `cancelled_by` VARCHAR(150) NULL DEFAULT NULL AFTER `cancellation_reason`;
+-- ALTER TABLE `comandas` ADD COLUMN IF NOT EXISTS `cancelled_at` DATETIME NULL DEFAULT NULL AFTER `cancelled_by`;
+-- ALTER TABLE `comandas` MODIFY COLUMN `status` ENUM('aberta', 'fechando', 'paga', 'cancelada') NOT NULL DEFAULT 'aberta';
+
+-- 3. Custo nos itens vendidos:
+-- ALTER TABLE `comanda_items` ADD COLUMN IF NOT EXISTS `cost_price` DECIMAL(10,2) NULL DEFAULT NULL AFTER `unit_price`;
+
+-- 4. Sessão de caixa:
+-- ALTER TABLE `cash_register` ADD COLUMN IF NOT EXISTS `session_id` VARCHAR(64) NULL DEFAULT NULL AFTER `id`;
+-- ALTER TABLE `daily_closing_reports` ADD COLUMN IF NOT EXISTS `session_id` VARCHAR(64) NULL DEFAULT NULL AFTER `date`;

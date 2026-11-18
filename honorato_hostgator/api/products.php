@@ -24,6 +24,8 @@ if ($method === 'GET') {
             'volume' => $r['volume'] ?? '',
             'alcoholContent' => $r['alcohol_content'] ?? '',
             'price' => (float)$r['price'],
+            'costPrice' => (isset($r['cost_price']) && $r['cost_price'] !== null) ? (float)$r['cost_price'] : null,
+            'imageFocalPoint' => $r['image_focal_point'] ?? 'center',
             'stock' => (int)$r['stock'],
             'minStockAlert' => (int)$r['min_stock_alert'],
             'unit' => $r['unit'] ?? 'un',
@@ -71,6 +73,8 @@ if ($method === 'POST') {
     $volume = $p['volume'] ?? null;
     $alcoholContent = $p['alcoholContent'] ?? null;
     $price = (float)($p['price'] ?? 0);
+    $costPrice = (isset($p['costPrice']) && $p['costPrice'] !== '' && $p['costPrice'] !== null) ? (float)$p['costPrice'] : null;
+    $imageFocalPoint = in_array($p['imageFocalPoint'] ?? '', ['top', 'bottom', 'center']) ? $p['imageFocalPoint'] : 'center';
     $stock = (int)($p['stock'] ?? 0);
     $minStockAlert = (int)($p['minStockAlert'] ?? 0);
     $unit = $p['unit'] ?? 'un';
@@ -79,11 +83,11 @@ if ($method === 'POST') {
 
     $sql = "INSERT INTO products (
         id, name, category, description, ingredients_json, recipe_ingredients_json,
-        tasting_notes, volume, alcohol_content, price, stock, min_stock_alert,
+        tasting_notes, volume, alcohol_content, price, cost_price, image_focal_point, stock, min_stock_alert,
         unit, image_url, is_available
     ) VALUES (
         :id, :name, :category, :description, :ingredients_json, :recipe_ingredients_json,
-        :tasting_notes, :volume, :alcohol_content, :price, :stock, :min_stock_alert,
+        :tasting_notes, :volume, :alcohol_content, :price, :cost_price, :image_focal_point, :stock, :min_stock_alert,
         :unit, :image_url, :is_available
     ) ON DUPLICATE KEY UPDATE
         name = VALUES(name),
@@ -95,6 +99,8 @@ if ($method === 'POST') {
         volume = VALUES(volume),
         alcohol_content = VALUES(alcohol_content),
         price = VALUES(price),
+        cost_price = VALUES(cost_price),
+        image_focal_point = VALUES(image_focal_point),
         stock = VALUES(stock),
         min_stock_alert = VALUES(min_stock_alert),
         unit = VALUES(unit),
@@ -113,6 +119,8 @@ if ($method === 'POST') {
         ':volume' => $volume,
         ':alcohol_content' => $alcoholContent,
         ':price' => $price,
+        ':cost_price' => $costPrice,
+        ':image_focal_point' => $imageFocalPoint,
         ':stock' => $stock,
         ':min_stock_alert' => $minStockAlert,
         ':unit' => $unit,
