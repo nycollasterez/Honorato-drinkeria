@@ -6,12 +6,16 @@ interface ImageUploaderProps {
   value: string;
   onChange: (dataUrl: string) => void;
   label?: string;
+  focalPoint?: 'center' | 'top' | 'bottom';
+  onFocalPointChange?: (point: 'center' | 'top' | 'bottom') => void;
 }
 
 export const ImageUploader: React.FC<ImageUploaderProps> = ({
   value,
   onChange,
   label = 'Foto do Drink',
+  focalPoint = 'center',
+  onFocalPointChange,
 }) => {
   const [isCompressing, setIsCompressing] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
@@ -96,46 +100,72 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       )}
 
       {value ? (
-        <div className="border border-neutral-800 bg-neutral-900 p-2.5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-14 h-14 bg-black border border-neutral-700 shrink-0 overflow-hidden">
-              <img
-                src={value}
-                alt="Foto"
-                className="w-full h-full object-cover grayscale contrast-125"
-              />
-            </div>
-
-            <div className="min-w-0">
-              <div className="flex items-center gap-1.5 text-white font-medium text-xs">
-                <Check className="w-3.5 h-3.5 text-white" />
-                <span>Foto pronta</span>
+        <div className="space-y-2">
+          <div className="border border-navy-800 bg-[#0c1122] p-2.5 flex items-center justify-between gap-3 rounded">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-14 h-14 bg-navy-950 border border-navy-700 shrink-0 overflow-hidden rounded">
+                <img
+                  src={value}
+                  alt="Foto"
+                  className={`w-full h-full object-cover ${
+                    focalPoint === 'top' ? 'object-top' : focalPoint === 'bottom' ? 'object-bottom' : 'object-center'
+                  }`}
+                />
               </div>
-              <p className="text-[10px] text-neutral-400 truncate">
-                Salva com sucesso
-              </p>
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 text-white font-medium text-xs">
+                  <Check className="w-3.5 h-3.5 text-orange-500" />
+                  <span>Foto pronta</span>
+                </div>
+                <p className="text-[10px] text-neutral-400 truncate">
+                  Salva com sucesso
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-2.5 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1 rounded cursor-pointer"
+              >
+                <Upload className="w-3 h-3" />
+                <span>Trocar</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="p-1.5 border border-navy-700 text-neutral-400 hover:text-white hover:bg-navy-800 transition-colors rounded cursor-pointer"
+                title="Remover"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="px-2.5 py-1.5 bg-white text-black hover:bg-neutral-200 text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1 cursor-pointer"
-            >
-              <Upload className="w-3 h-3" />
-              <span>Trocar</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={handleRemoveImage}
-              className="p-1.5 border border-neutral-700 text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer"
-              title="Remover"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          {onFocalPointChange && (
+            <div className="flex items-center justify-between gap-2 bg-[#13192f] border border-navy-800 p-2 rounded">
+              <span className="text-[11px] text-neutral-300">Ponto de Foco (Copo):</span>
+              <div className="flex items-center gap-1">
+                {(['top', 'center', 'bottom'] as const).map((pt) => (
+                  <button
+                    key={pt}
+                    type="button"
+                    onClick={() => onFocalPointChange(pt)}
+                    className={`px-2 py-0.5 text-[10px] uppercase font-semibold rounded border transition-colors ${
+                      focalPoint === pt
+                        ? 'bg-orange-500/20 text-orange-400 border-orange-500'
+                        : 'bg-navy-900 text-neutral-400 border-navy-700 hover:text-white'
+                    }`}
+                  >
+                    {pt === 'top' ? 'Topo' : pt === 'center' ? 'Centro' : 'Base'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         <div
@@ -143,10 +173,10 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border border-dashed p-5 text-center transition-colors cursor-pointer flex flex-col items-center justify-center space-y-1.5 ${
+          className={`border border-dashed p-5 text-center transition-colors cursor-pointer flex flex-col items-center justify-center space-y-1.5 rounded ${
             isDragging
-              ? 'border-white bg-neutral-900'
-              : 'border-neutral-700 bg-neutral-950 hover:border-neutral-500 hover:bg-neutral-900/50'
+              ? 'border-orange-500 bg-navy-900'
+              : 'border-navy-700 bg-[#0c1122] hover:border-orange-500/50 hover:bg-[#13192f]'
           }`}
         >
           {isCompressing ? (

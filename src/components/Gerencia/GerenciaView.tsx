@@ -20,16 +20,25 @@ import {
   Wine,
   FileSpreadsheet,
   Layers,
+  Image as ImageIcon,
 } from 'lucide-react';
+import { ImageUploader } from '../Common/ImageUploader';
 
 export const GerenciaView: React.FC = () => {
   const {
     cashRegister,
     comandas,
     transactions,
+    products,
     bottles,
     closingReports,
     performDailyClosing,
+    clearComandasOnCashClose,
+    setClearComandasOnCashClose,
+    menuCoverImage,
+    setMenuCoverImage,
+    menuCoverFocalPoint,
+    setMenuCoverFocalPoint,
     setActiveView,
     setIsClientOnlyMode,
     staffPins,
@@ -83,6 +92,30 @@ export const GerenciaView: React.FC = () => {
   }, [transactions]);
 
   const todayComandasClosed = comandas.filter((c) => c.status === 'paga').length;
+  const pendingComandas = useMemo(() => {
+    return comandas.filter((c) => c.status === 'aberta' || c.status === 'fechando');
+  }, [comandas]);
+
+  // Lucro Bruto Estimado e Margem Bruta Estimada (Requisito 6)
+  const estimatedGrossProfit = useMemo(() => {
+    let totalCost = 0;
+    let itemsCount = 0;
+    transactions.forEach((tx) => {
+      tx.itemsSummary?.forEach((item) => {
+        const prod = products.find((p) => p.name.toLowerCase() === item.name.toLowerCase());
+        if (prod && prod.costPrice !== undefined) {
+          totalCost += prod.costPrice * item.quantity;
+          itemsCount += item.quantity;
+        }
+      });
+    });
+    const grossProfit = cashRegister.totalRevenue - totalCost;
+    const marginPct =
+      cashRegister.totalRevenue > 0
+        ? Math.round(((cashRegister.totalRevenue - totalCost) / cashRegister.totalRevenue) * 100)
+        : 0;
+    return { grossProfit, totalCost, marginPct, itemsCount };
+  }, [transactions, products, cashRegister.totalRevenue]);
 
   // Selected Historical Report
   const currentHistoricalReport: DailyClosingReport | null = useMemo(() => {
@@ -353,10 +386,20 @@ export const GerenciaView: React.FC = () => {
   };
 
   const handleExecuteClosing = () => {
+    if (pendingComandas.length > 0) {
+      alert(
+        `Não é possível fechar o caixa: existem ${pendingComandas.length} comanda(s) ainda abertas com saldo pendente. Finalize os pagamentos ou cancele as comandas antes de encerrar o turno.`
+      );
+      return;
+    }
     if (confirm('Confirmar fechamento definitivo do caixa diário? Os valores serão consolidados e arquivados no histórico.')) {
-      performDailyClosing(managerName, closingNotes);
-      setActiveTab('relatorio_a4');
-      setReportPeriod('hoje');
+      try {
+        performDailyClosing(managerName, closingNotes);
+        setActiveTab('relatorio_a4');
+        setReportPeriod('hoje');
+      } catch (err: any) {
+        alert(err.message || 'Erro ao realizar fechamento');
+      }
     }
   };
 
@@ -479,14 +522,16 @@ export const GerenciaView: React.FC = () => {
                 <p className="text-[10px] text-neutral-400">Por conta</p>
               </div>
 
-              <div className="bg-[#13192f] border border-[#1f2945] p-4 space-y-1">
+              <div className="bg-[#13192f] border border-[#1f2945] p-4 space-y-1 rounded-lg">
                 <span className="text-[10px] text-neutral-300 uppercase tracking-wider block">
-                  Serviço (10%)
+                  Lucro Bruto Estimado
                 </span>
-                <span className="text-xl sm:text-2xl font-bold font-mono text-white">
-                  {formatPrice(cashRegister.totalServiceCharge)}
+                <span className="text-xl sm:text-2xl font-bold font-mono text-emerald-400">
+                  {formatPrice(estimatedGrossProfit.grossProfit)}
                 </span>
-                <p className="text-[10px] text-neutral-400">Taxa acumulada</p>
+                <p className="text-[10px] text-neutral-400">
+                  Margem: ~{estimatedGrossProfit.marginPct}% · Custo: {formatPrice(estimatedGrossProfit.totalCost)}
+                </p>
               </div>
 
               <div
@@ -593,17 +638,102 @@ export const GerenciaView: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Operational & Menu Cover Settings */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Menu Cover Photo Uploader */}
+              <div className="bg-[#13192f] border border-[#1f2945] p-5 rounded-xl space-y-3">
+                <div className="flex items-center gap-2 border-b border-[#1f2945] pb-2">
+                  <ImageIcon className="w-4 h-4 text-orange-400" />
+                  <h3 className="font-semibold text-xs text-white uppercase tracking-wider">
+                    Imagem de Capa do Cardápio
+                  </h3>
+                </div>
+                <p className="text-[11px] text-neutral-400">
+                  Defina a imagem de fundo que aparece no topo do cardápio digital para os clientes. Ajuste o ponto de foco para evitar cortes nos copos.
+                </p>
+                <ImageUploader
+                  label="Foto de Capa do Cardápio"
+                  value={menuCoverImage || ''}
+                  onChange={(val) => setMenuCoverImage(val)}
+                  focalPoint={menuCoverFocalPoint}
+                  onFocalPointChange={setMenuCoverFocalPoint}
+                />
+              </div>
+
+              {/* Cash Register & Comandas View Option */}
+              <div className="bg-[#13192f] border border-[#1f2945] p-5 rounded-xl space-y-4">
+                <div className="flex items-center gap-2 border-b border-[#1f2945] pb-2">
+                  <Layers className="w-4 h-4 text-orange-400" />
+                  <h3 className="font-semibold text-xs text-white uppercase tracking-wider">
+                    Configuração de Visualização por Caixa
+                  </h3>
+                </div>
+
+                <div className="p-3.5 bg-[#10172e] border border-[#253257] rounded-lg flex items-start justify-between gap-3 text-xs">
+                  <div className="space-y-1">
+                    <label htmlFor="setting-clear-view" className="font-semibold text-white block cursor-pointer">
+                      Limpar visualização das comandas ao fechar o caixa
+                    </label>
+                    <p className="text-[11px] text-neutral-400 leading-relaxed">
+                      Ao ativar, quando um turno de caixa for encerrado, as comandas fechadas daquele caixa deixam a tela principal e um novo caixa abre com a lista limpa. Todas as comandas permanecem preservadas no Histórico.
+                    </p>
+                  </div>
+                  <input
+                    id="setting-clear-view"
+                    type="checkbox"
+                    checked={clearComandasOnCashClose}
+                    onChange={(e) => setClearComandasOnCashClose(e.target.checked)}
+                    className="w-4 h-4 text-orange-500 rounded bg-[#1a2342] border-[#253257] focus:ring-orange-500 cursor-pointer shrink-0 mt-0.5"
+                  />
+                </div>
+
+                <div className="p-3 bg-[#10172e] border border-[#253257] rounded-lg text-xs space-y-1">
+                  <span className="font-semibold text-neutral-300 block">Sessão Atual de Caixa:</span>
+                  <p className="font-mono text-orange-400 text-[11px]">
+                    {cashRegister.sessionId || 'Nenhuma sessão ativa'}
+                  </p>
+                  <p className="text-[10px] text-neutral-500">
+                    Garante a integridade dos atendimentos mesmo em turnos que atravessam a meia-noite.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
         {/* TAB 2: FECHAMENTO DO DIA */}
         {activeTab === 'fechamento' && (
-          <div className="max-w-2xl mx-auto bg-[#13192f] border border-[#1f2945] p-6 space-y-6 text-xs">
+          <div className="max-w-2xl mx-auto bg-[#13192f] border border-[#1f2945] p-6 space-y-6 text-xs rounded-xl shadow-sm">
             <div className="border-b border-[#1f2945] pb-3">
               <h2 className="font-editorial text-xl font-bold text-white">
                 Fechamento de Caixa Diário
               </h2>
             </div>
+
+            {pendingComandas.length > 0 && (
+              <div className="p-4 bg-rose-950/40 border border-rose-800 rounded-lg text-rose-200 text-xs space-y-2">
+                <div className="flex items-center gap-2 font-bold text-rose-300">
+                  <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
+                  <span>Pendência: Existem {pendingComandas.length} comanda(s) com saldo pendente!</span>
+                </div>
+                <p className="text-[11px]">
+                  O fechamento diário exige a resolução de todas as comandas. Conclua os pagamentos ou efetue o cancelamento com justificativa antes de fechar:
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {pendingComandas.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => setActiveView('comandas')}
+                      className="px-2 py-0.5 bg-rose-900/60 hover:bg-rose-900 border border-rose-700 font-mono text-[10px] rounded cursor-pointer transition-colors"
+                    >
+                      Comanda {c.number} ({c.identifier})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Reconciliation breakdown */}
             <div className="space-y-2.5 bg-[#1a2342]/70 border border-[#1f2945] p-4">
@@ -691,7 +821,12 @@ export const GerenciaView: React.FC = () => {
 
               <button
                 onClick={handleExecuteClosing}
-                className="w-full py-3 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold uppercase tracking-wider hover:bg-neutral-200 transition-colors cursor-pointer text-xs shadow-lg mt-2"
+                disabled={pendingComandas.length > 0}
+                className={`w-full py-3 text-xs font-bold uppercase tracking-wider rounded transition-colors mt-2 ${
+                  pendingComandas.length > 0
+                    ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
+                    : 'bg-[#ff5a1f] hover:bg-[#ff723f] text-white shadow-md shadow-[#ff5a1f]/30 cursor-pointer'
+                }`}
               >
                 Confirmar Fechamento & Emitir Relatório A4
               </button>
@@ -1008,6 +1143,67 @@ export const GerenciaView: React.FC = () => {
                       <p className="text-[10px] text-neutral-600">Pompéia Drinkeria</p>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Operational & Menu Cover Settings */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+              {/* Menu Cover Photo Uploader */}
+              <div className="bg-[#13192f] border border-[#1f2945] p-5 rounded-xl space-y-3">
+                <div className="flex items-center gap-2 border-b border-[#1f2945] pb-2">
+                  <ImageIcon className="w-4 h-4 text-orange-400" />
+                  <h3 className="font-semibold text-xs text-white uppercase tracking-wider">
+                    Imagem de Capa do Cardápio
+                  </h3>
+                </div>
+                <p className="text-[11px] text-neutral-400">
+                  Defina a imagem de fundo que aparece no topo do cardápio digital para os clientes. Ajuste o ponto de foco para evitar cortes nos copos.
+                </p>
+                <ImageUploader
+                  label="Foto de Capa do Cardápio"
+                  value={menuCoverImage || ''}
+                  onChange={(val) => setMenuCoverImage(val)}
+                  focalPoint={menuCoverFocalPoint}
+                  onFocalPointChange={setMenuCoverFocalPoint}
+                />
+              </div>
+
+              {/* Cash Register & Comandas View Option */}
+              <div className="bg-[#13192f] border border-[#1f2945] p-5 rounded-xl space-y-4">
+                <div className="flex items-center gap-2 border-b border-[#1f2945] pb-2">
+                  <Layers className="w-4 h-4 text-orange-400" />
+                  <h3 className="font-semibold text-xs text-white uppercase tracking-wider">
+                    Configuração de Visualização por Caixa
+                  </h3>
+                </div>
+
+                <div className="p-3.5 bg-[#10172e] border border-[#253257] rounded-lg flex items-start justify-between gap-3 text-xs">
+                  <div className="space-y-1">
+                    <label htmlFor="setting-clear-view" className="font-semibold text-white block cursor-pointer">
+                      Limpar visualização das comandas ao fechar o caixa
+                    </label>
+                    <p className="text-[11px] text-neutral-400 leading-relaxed">
+                      Ao ativar, quando um turno de caixa for encerrado, as comandas fechadas daquele caixa deixam a tela principal e um novo caixa abre com a lista limpa. Todas as comandas permanecem preservadas no Histórico.
+                    </p>
+                  </div>
+                  <input
+                    id="setting-clear-view"
+                    type="checkbox"
+                    checked={clearComandasOnCashClose}
+                    onChange={(e) => setClearComandasOnCashClose(e.target.checked)}
+                    className="w-4 h-4 text-orange-500 rounded bg-[#1a2342] border-[#253257] focus:ring-orange-500 cursor-pointer shrink-0 mt-0.5"
+                  />
+                </div>
+
+                <div className="p-3 bg-[#10172e] border border-[#253257] rounded-lg text-xs space-y-1">
+                  <span className="font-semibold text-neutral-300 block">Sessão Atual de Caixa:</span>
+                  <p className="font-mono text-orange-400 text-[11px]">
+                    {cashRegister.sessionId || 'Nenhuma sessão ativa'}
+                  </p>
+                  <p className="text-[10px] text-neutral-500">
+                    Garante a integridade dos atendimentos mesmo em turnos que atravessam a meia-noite.
+                  </p>
                 </div>
               </div>
             </div>

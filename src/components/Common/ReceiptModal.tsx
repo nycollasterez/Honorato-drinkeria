@@ -52,12 +52,12 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   const handleShareSummary = () => {
     const text =
       `POMPÉIA DRINKERIA\n` +
-      `Via do Cliente - Comanda #${comanda.number.toString().padStart(2, '0')} (${comanda.identifier})\n` +
+      `Via do Cliente - Comanda ${comanda.number} (${comanda.identifier})\n` +
       comanda.items
         .map((i) => `${i.quantity}x ${i.productName} - ${formatPrice(i.unitPrice * i.quantity)}`)
         .join('\n') +
       `\n\nSubtotal: ${formatPrice(subtotal)}` +
-      (comanda.includeServiceCharge ? `\nServiço (10%): ${formatPrice(serviceAmount)}` : '') +
+      (comanda.includeServiceCharge && serviceAmount > 0 ? `\nServiço (10%): ${formatPrice(serviceAmount)}` : '') +
       `\nTOTAL: ${formatPrice(total)}` +
       (comanda.status === 'paga' && comanda.paymentMethod ? `\nPago via: ${paymentLabelMap[comanda.paymentMethod]}` : '') +
       `\nDividido em ${splitCount} pessoas: ${formatPrice(perPerson)} cada.\n` +
@@ -71,8 +71,8 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overflow-x-hidden pt-4 sm:pt-6 pb-6">
-      <div className="relative w-full max-w-md bg-neutral-950 border border-neutral-700 p-4 sm:p-6 shadow-2xl text-white my-auto space-y-4 rounded-xl box-border">
+    <div className="fixed inset-0 z-50 bg-[#0c1122]/90 backdrop-blur-sm flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overflow-x-hidden pt-4 sm:pt-6 pb-6">
+      <div className="relative w-full max-w-md bg-[#13192f] border border-[#253257] p-4 sm:p-6 shadow-2xl text-white my-auto space-y-4 rounded-xl box-border">
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -82,13 +82,13 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         </button>
 
         {/* Receipt Type Toggle (Via do Cliente vs Via do Estabelecimento) */}
-        <div className="no-print flex border border-neutral-800 bg-neutral-900 text-xs font-semibold">
+        <div className="no-print flex border border-[#253257] bg-[#10172e] text-xs font-semibold rounded overflow-hidden">
           <button
             type="button"
             onClick={() => setActiveReceiptType('cliente')}
             className={`flex-1 py-2 px-3 text-center transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
               activeReceiptType === 'cliente'
-                ? 'bg-white text-black font-bold'
+                ? 'bg-orange-500 text-white font-bold'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -100,7 +100,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
             onClick={() => setActiveReceiptType('estabelecimento')}
             className={`flex-1 py-2 px-3 text-center transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
               activeReceiptType === 'estabelecimento'
-                ? 'bg-white text-black font-bold'
+                ? 'bg-orange-500 text-white font-bold'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -110,9 +110,9 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
         </div>
 
         {/* Printable Thermal Receipt Container */}
-        <div id="thermal-receipt" className="space-y-4 font-mono text-xs text-neutral-200 bg-black/40 p-4 border border-neutral-800">
+        <div id="thermal-receipt" className="space-y-4 font-mono text-xs text-neutral-200 bg-[#0c1122] p-4 border border-[#253257] rounded-lg">
           {/* Header */}
-          <div className="text-center pb-3 border-b border-dashed border-neutral-700 space-y-1">
+          <div className="text-center pb-3 border-b border-dashed border-[#253257] space-y-1">
             <h2 className="font-brand text-lg font-bold tracking-widest text-white">
               POMPÉIA DRINKERIA
             </h2>
@@ -122,17 +122,17 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
                 <p className="text-[10px] tracking-widest uppercase text-neutral-300 font-bold">
                   {comanda.status === 'paga' ? '*** VIA DO CLIENTE ***' : 'CONFERÊNCIA DE MESA'}
                 </p>
-                <p className="text-[9px] text-neutral-500 uppercase">
+                <p className="text-[9px] text-neutral-400 uppercase">
                   Documento não fiscal para conferência
                 </p>
               </>
             ) : (
               <>
-                <p className="text-[10px] tracking-widest uppercase text-white font-bold bg-neutral-900 py-0.5 border border-neutral-700">
+                <p className="text-[10px] tracking-widest uppercase text-white font-bold bg-[#1a2342] py-0.5 border border-[#253257] rounded">
                   VIA DO ESTABELECIMENTO
                 </p>
                 <div className="flex items-center justify-center gap-1 text-[9px] text-neutral-400 mt-1">
-                  <Clock className="w-3 h-3 text-white" />
+                  <Clock className="w-3 h-3 text-orange-400" />
                   <span>ARQUIVO FISCAL INTERNO (VALIDADE 30 DIAS)</span>
                 </div>
               </>
@@ -144,9 +144,9 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           </div>
 
           {/* Comanda Info */}
-          <div className="py-2 border-b border-dashed border-neutral-800 text-[11px] space-y-1">
+          <div className="py-2 border-b border-dashed border-[#253257] text-[11px] space-y-1">
             <div className="flex justify-between font-bold text-white">
-              <span>Comanda #{comanda.number.toString().padStart(2, '0')}</span>
+              <span>Comanda {comanda.number}</span>
               <span>{comanda.identifier}</span>
             </div>
             {comanda.customerName && (
@@ -204,22 +204,22 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           </div>
 
           {/* Financial Totals */}
-          <div className="py-2 border-b border-dashed border-neutral-700 space-y-1.5 text-xs">
+          <div className="py-2 border-b border-dashed border-[#253257] space-y-1.5 text-xs">
             <div className="flex justify-between text-neutral-300">
               <span>Subtotal dos itens:</span>
               <span className="font-mono">{formatPrice(subtotal)}</span>
             </div>
 
-            <div className="flex justify-between text-neutral-300">
-              <span>Serviço opcional (10%):</span>
-              <span className="font-mono">
-                {comanda.includeServiceCharge ? formatPrice(serviceAmount) : 'R$ 0,00'}
-              </span>
-            </div>
+            {comanda.includeServiceCharge && serviceAmount > 0 && (
+              <div className="flex justify-between text-neutral-300">
+                <span>Serviço opcional (10%):</span>
+                <span className="font-mono">{formatPrice(serviceAmount)}</span>
+              </div>
+            )}
 
-            <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-dashed border-neutral-800">
+            <div className="flex justify-between text-sm font-bold text-white pt-2 border-t border-dashed border-[#253257]">
               <span>TOTAL {comanda.status === 'paga' ? 'PAGO' : 'A PAGAR'}:</span>
-              <span className="font-mono text-base">{formatPrice(total)}</span>
+              <span className="font-mono text-base text-orange-400">{formatPrice(total)}</span>
             </div>
 
             {comanda.status === 'paga' && comanda.paymentMethod && (

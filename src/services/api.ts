@@ -287,6 +287,17 @@ export const hostgatorApi = {
   },
 
   /**
+   * Cancelar comanda com motivo e responsável (Requirement 4)
+   */
+  async cancelComanda(comandaId: string, reason: string, cancelledBy?: string): Promise<boolean> {
+    const res = await apiFetch('/comandas.php', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'cancel', comandaId, reason, cancelledBy }),
+    });
+    return !!res;
+  },
+
+  /**
    * Alternar taxa de serviço (10%)
    */
   async toggleServiceCharge(comandaId: string): Promise<boolean> {

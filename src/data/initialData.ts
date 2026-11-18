@@ -1,12 +1,22 @@
 import { Product, BottleItem, Comanda, DailyClosingReport } from '../types';
 
+export const MENU_CATEGORIES_ORDER = [
+  { key: 'autorais', label: 'Autorais' },
+  { key: 'contemporaneos', label: 'Contemporâneos' },
+  { key: 'classicos', label: 'Clássicos' },
+  { key: 'sem_alcool', label: 'Sem Álcool' },
+  { key: 'experiencias', label: 'Experiências' },
+] as const;
+
 export const CATEGORY_LABELS: Record<string, string> = {
-  autorais: 'Coquetéis Autorais',
-  classicos: 'Clássicos da Coquetelaria',
+  autorais: 'Autorais',
+  contemporaneos: 'Contemporâneos',
+  classicos: 'Clássicos',
+  sem_alcool: 'Sem Álcool',
+  experiencias: 'Experiências',
   doses: 'Doses & Destilados',
   cervejas: 'Cervejas Artesanais',
   vinhos: 'Vinhos & Espumantes',
-  sem_alcool: 'Mocktails & Soft Drinks',
   petiscos: 'Petiscos & Tábuas',
 };
 
@@ -161,6 +171,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     volume: '180ml',
     alcoholContent: '28% ABV',
     price: 42.0,
+    costPrice: 14.5,
     stock: 25,
     minStockAlert: 8,
     unit: 'un',
@@ -181,6 +192,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     volume: '220ml',
     alcoholContent: '19% ABV',
     price: 44.0,
+    costPrice: 15.2,
     stock: 18,
     minStockAlert: 5,
     unit: 'un',
@@ -244,6 +256,7 @@ export const INITIAL_PRODUCTS: Product[] = [
     volume: '150ml',
     alcoholContent: '24% ABV',
     price: 38.0,
+    costPrice: 12.8,
     stock: 40,
     minStockAlert: 10,
     unit: 'un',

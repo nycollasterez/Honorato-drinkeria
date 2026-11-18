@@ -42,7 +42,8 @@ interface AppContextType {
   setIsClientOnlyMode: (val: boolean) => void;
 
   // Comanda actions
-  openComanda: (identifier: string, customerName?: string, notes?: string) => Comanda;
+  openComanda: (numberOrIdentifier: number | string, identifier?: string, customerName?: string, notes?: string) => Comanda;
+  cancelComanda: (comandaId: string, reason: string, cancelledBy?: string) => void;
   addItemToComanda: (comandaId: string, productId: string, quantity: number, notes?: string) => void;
   removeItemFromComanda: (comandaId: string, itemId: string) => void;
   updateComandaStatus: (comandaId: string, status: ComandaStatus) => void;
@@ -53,6 +54,13 @@ interface AppContextType {
     paymentSplits?: PaymentSplit[],
     amountReceived?: number
   ) => void;
+
+  // Settings & Configuration
+  clearComandasOnCashClose: boolean;
+  setClearComandasOnCashClose: (val: boolean) => void;
+  menuCoverImage?: string;
+  menuCoverFocalPoint: 'center' | 'top' | 'bottom';
+  setMenuCoverImage: (url: string, focalPoint?: 'center' | 'top' | 'bottom') => void;
 
   // POS / Direct Sales & Cashier
   registerDirectSale: (
@@ -106,6 +114,8 @@ const STORAGE_KEYS = {
   SESSION: 'honorato_session_prod_v1',
   STAFF_PINS: 'honorato_staff_pins_prod_v1',
   RECEIPTS: 'honorato_receipts_prod_v1',
+  SETTINGS_CLEAR_COMANDAS: 'pompeia_cfg_clear_comandas_v1',
+  MENU_COVER: 'pompeia_menu_cover_v1',
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -225,7 +235,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [comandas, setComandas] = useState<Comanda[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.COMANDAS);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: Comanda[] = JSON.parse(saved);
+        // Requirement 2: "Remova a cobrança automática de 10% das novas comandas e das comandas ainda abertas"
+        return parsed.map((c) => {
+          if (c.status === 'aberta' || c.status === 'fechando') {
+            return { ...c, includeServiceCharge: false, serviceChargePercent: 0 };
+          }
+          return c;
+        });
+      }
     } catch (e) {
       console.error('Failed reading comandas', e);
     }
@@ -247,12 +266,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [cashRegister, setCashRegister] = useState<CashRegisterState>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.CASH_REGISTER);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: CashRegisterState = JSON.parse(saved);
+        if (!parsed.sessionId) {
+          parsed.sessionId = 'sess-' + (parsed.openedAt ? new Date(parsed.openedAt).getTime() : Date.now());
+        }
+        return parsed;
+      }
     } catch (e) {
       console.error('Failed reading cash register', e);
     }
     return {
       isOpen: false,
+      sessionId: 'sess-' + Date.now(),
       openedAt: '',
       initialCash: 0,
       currentCashBalance: 0,
@@ -267,6 +293,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalServiceCharge: 0,
     };
   });
+
+  // Setting: Limpar visualização das comandas ao fechar o caixa (Requirement 3)
+  const [clearComandasOnCashClose, setClearComandasOnCashCloseState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.SETTINGS_CLEAR_COMANDAS);
+      if (saved !== null) return JSON.parse(saved);
+    } catch (e) {
+      // fallback
+    }
+    return true; // Padrão ativado para organização profissional por turno
+  });
+
+  const setClearComandasOnCashClose = (val: boolean) => {
+    setClearComandasOnCashCloseState(val);
+    try {
+      localStorage.setItem(STORAGE_KEYS.SETTINGS_CLEAR_COMANDAS, JSON.stringify(val));
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  // Cardápio Cover Image & Focal Point (Requirement 9)
+  const [menuCoverImage, setMenuCoverImageState] = useState<string>(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.MENU_COVER) || '';
+    } catch (e) {
+      return '';
+    }
+  });
+
+  const [menuCoverFocalPoint, setMenuCoverFocalPointState] = useState<'center' | 'top' | 'bottom'>(() => {
+    try {
+      return (localStorage.getItem(STORAGE_KEYS.MENU_COVER + '_focal') as any) || 'center';
+    } catch (e) {
+      return 'center';
+    }
+  });
+
+  const setMenuCoverImage = (url: string, focalPoint: 'center' | 'top' | 'bottom' = 'center') => {
+    setMenuCoverImageState(url);
+    setMenuCoverFocalPointState(focalPoint);
+    try {
+      localStorage.setItem(STORAGE_KEYS.MENU_COVER, url);
+      localStorage.setItem(STORAGE_KEYS.MENU_COVER + '_focal', focalPoint);
+    } catch (e) {
+      // ignore
+    }
+  };
 
   // Staff PINs state
   const DEFAULT_PINS: Record<string, string> = {
@@ -565,19 +639,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // Comanda actions
-  const openComanda = (identifier: string, customerName?: string, notes?: string): Comanda => {
-    const maxNum = comandas.reduce((acc, c) => (c.number > acc ? c.number : acc), 0);
+  const openComanda = (
+    numberOrIdentifier: number | string,
+    maybeIdentifier?: string,
+    customerName?: string,
+    notes?: string
+  ): Comanda => {
+    let chosenNum: number;
+    let chosenIdent: string;
+
+    if (typeof numberOrIdentifier === 'number') {
+      chosenNum = Math.min(100, Math.max(1, numberOrIdentifier));
+      chosenIdent = maybeIdentifier?.trim() || `Comanda ${chosenNum}`;
+    } else {
+      const parsed = parseInt(String(numberOrIdentifier).replace(/\D/g, ''), 10);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 100) {
+        chosenNum = parsed;
+      } else {
+        // Encontra o menor número de 1 a 100 disponível
+        const activeNums = new Set(
+          comandas
+            .filter((c) => c.status === 'aberta' || c.status === 'fechando')
+            .map((c) => c.number)
+        );
+        chosenNum = 1;
+        while (chosenNum <= 100 && activeNums.has(chosenNum)) {
+          chosenNum++;
+        }
+      }
+      chosenIdent = String(numberOrIdentifier).trim() || `Comanda ${chosenNum}`;
+    }
+
+    // Validação estrita: impedir duas comandas ativas com o mesmo número
+    const isAlreadyActive = comandas.some(
+      (c) => c.number === chosenNum && (c.status === 'aberta' || c.status === 'fechando')
+    );
+    if (isAlreadyActive) {
+      throw new Error(`A Comanda ${chosenNum} já está aberta e ativa no momento.`);
+    }
+
+    const currentSessId = cashRegister.sessionId || `sess-${Date.now()}`;
+
     const newComanda: Comanda = {
-      id: `cmd-${Date.now()}`,
-      number: maxNum + 1,
-      identifier: identifier.trim() || `Comanda #${maxNum + 1}`,
+      id: `cmd-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      number: chosenNum,
+      identifier: chosenIdent,
       customerName: customerName?.trim() || undefined,
       status: 'aberta',
+      cashRegisterSessionId: currentSessId,
       items: [],
       openedAt: new Date().toISOString(),
       notes: notes?.trim() || undefined,
-      includeServiceCharge: true,
-      serviceChargePercent: 10,
+      includeServiceCharge: false, // 10% retirado conforme requisito 2
+      serviceChargePercent: 0,
     };
 
     setComandas((prev) => [newComanda, ...prev]);
@@ -594,6 +708,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return newComanda;
   };
 
+  const cancelComanda = (comandaId: string, reason: string, cancelledBy?: string) => {
+    const target = comandas.find((c) => c.id === comandaId);
+    if (!target) return;
+    if (target.status === 'cancelada') return;
+
+    if (!reason || !reason.trim()) {
+      throw new Error('O motivo do cancelamento é obrigatório.');
+    }
+
+    if (target.status === 'paga') {
+      alert('Aviso: Esta comanda possui pagamento registrado. O cancelamento não faz estorno automático do caixa. Verifique no fluxo de caixa se é necessário registrar sangria/estorno.');
+    }
+
+    const nowIso = new Date().toISOString();
+    const who = cancelledBy || currentUser?.name || 'Administrador';
+
+    // Regra do requisito 4:
+    // "A comanda deve receber o status “Cancelada”, sem ser excluída.
+    // Uma comanda cancelada não pode continuar recebendo itens ou entrar no faturamento como venda concluída.
+    // Respeite a movimentação de estoque existente. Não devolva automaticamente ao estoque insumos de drinks já preparados. Evite movimentações duplicadas."
+
+    setComandas((prev) =>
+      prev.map((c) => {
+        if (c.id !== comandaId) return c;
+        return {
+          ...c,
+          status: 'cancelada',
+          cancellationReason: reason.trim(),
+          cancelledBy: who,
+          cancelledAt: nowIso,
+        };
+      })
+    );
+
+    notifyRealtimeChange();
+
+    hostgatorApi.cancelComanda(comandaId, reason.trim(), who).catch((err) => {
+      console.warn('HostGator cancel comanda fallback:', err);
+    });
+  };
+
   const addItemToComanda = (
     comandaId: string,
     productId: string,
@@ -601,6 +756,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     notes?: string
   ) => {
     if (quantity <= 0) return;
+    const targetComanda = comandas.find((c) => c.id === comandaId);
+    if (!targetComanda || targetComanda.status === 'cancelada' || targetComanda.status === 'paga') {
+      return;
+    }
+
     const targetProduct = products.find((p) => p.id === productId);
     if (!targetProduct) return;
 
@@ -610,6 +770,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       productId: targetProduct.id,
       productName: targetProduct.name,
       unitPrice: targetProduct.price,
+      costPrice: targetProduct.costPrice !== undefined ? targetProduct.costPrice : undefined,
       quantity,
       notes: notes?.trim() || undefined,
       addedAt: new Date().toISOString(),
@@ -754,14 +915,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const nowIso = new Date().toISOString();
     const expiresIso = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    const authCode = `HON-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+    const authCode = `POM-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
     const newTx: Transaction = {
       id: `tx-${Date.now()}`,
       comandaId: comanda.id,
       comandaNumber: comanda.number,
       type: 'comanda_fechada',
-      description: `Comanda #${comanda.number.toString().padStart(2, '0')} (${comanda.identifier})`,
+      description: `Comanda ${comanda.number} (${comanda.identifier})`,
       amount: totalAmount,
       serviceChargeAmount: serviceCharge,
       paymentMethod,
@@ -882,7 +1043,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const nowIso = new Date().toISOString();
     const expiresIso = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-    const authCode = `HON-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+    const authCode = `POM-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
     const newTx: Transaction = {
       id: `tx-direct-${Date.now()}`,
@@ -964,8 +1125,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const openCashRegister = (initialAmount: number) => {
+    const newSessionId = `sess-${Date.now()}`;
     setCashRegister({
       isOpen: true,
+      sessionId: newSessionId,
       openedAt: new Date().toISOString(),
       initialCash: initialAmount,
       currentCashBalance: initialAmount,
@@ -982,6 +1145,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const closeCashRegister = () => {
+    // Requirement 3: "Se existirem comandas abertas, apresente a pendência e exija sua resolução antes de concluir o fechamento. Não esconda comandas com saldo pendente."
+    const openCmds = comandas.filter((c) => c.status === 'aberta' || c.status === 'fechando');
+    if (openCmds.length > 0) {
+      throw new Error(
+        `Existem ${openCmds.length} comanda(s) ainda abertas ou com conta pedida! Finalize os pagamentos ou cancele as comandas antes de fechar o caixa.`
+      );
+    }
+
     setCashRegister((prev) => ({
       ...prev,
       isOpen: false,
@@ -990,6 +1161,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Perform daily closing and save official report
   const performDailyClosing = (closedBy: string, notes?: string): DailyClosingReport => {
+    // Requirement 3: exigir resolução antes de concluir fechamento
+    const openCmds = comandas.filter((c) => c.status === 'aberta' || c.status === 'fechando');
+    if (openCmds.length > 0) {
+      throw new Error(
+        `Existem ${openCmds.length} comanda(s) com saldo pendente. Encerre ou cancele as comandas antes de realizar o fechamento do caixa.`
+      );
+    }
+
     const todayStr = new Date().toISOString().split('T')[0];
 
     // Compute top products sold today from transactions
@@ -1012,6 +1191,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const report: DailyClosingReport = {
       id: `rep-day-${Date.now()}`,
       date: todayStr,
+      sessionId: cashRegister.sessionId,
       openedAt: cashRegister.openedAt,
       closedAt: new Date().toISOString(),
       closedBy: closedBy || 'Gerência Pompéia',
@@ -1315,11 +1495,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isClientOnlyMode,
         setIsClientOnlyMode,
         openComanda,
+        cancelComanda,
         addItemToComanda,
         removeItemFromComanda,
         updateComandaStatus,
         toggleServiceCharge,
         closeComandaAndPay,
+        clearComandasOnCashClose,
+        setClearComandasOnCashClose,
+        menuCoverImage,
+        menuCoverFocalPoint,
+        setMenuCoverImage,
         registerDirectSale,
         addCashMovement,
         openCashRegister,

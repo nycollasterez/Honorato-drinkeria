@@ -69,10 +69,12 @@ export const EstoqueView: React.FC = () => {
     volume: string;
     alcoholContent: string;
     price: string;
+    costPrice: string;
     stock: string;
     minStockAlert: string;
     unit: 'un' | 'dose' | 'garrafa' | 'porcao';
     imageUrl: string;
+    imageFocalPoint: 'center' | 'top' | 'bottom';
     isAvailable: boolean;
     recipeIngredients: { bottleId: string; mlPerDrink: number }[];
   }>({
@@ -84,10 +86,12 @@ export const EstoqueView: React.FC = () => {
     volume: '200ml',
     alcoholContent: '18% ABV',
     price: '38.00',
+    costPrice: '',
     stock: '25',
     minStockAlert: '5',
     unit: 'un',
     imageUrl: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=800&q=80',
+    imageFocalPoint: 'center',
     isAvailable: true,
     recipeIngredients: [],
   });
@@ -202,10 +206,12 @@ export const EstoqueView: React.FC = () => {
       volume: '200ml',
       alcoholContent: '18% ABV',
       price: '38.00',
+      costPrice: '',
       stock: '25',
       minStockAlert: '5',
       unit: 'un',
       imageUrl: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=800&q=80',
+      imageFocalPoint: 'center',
       isAvailable: true,
       recipeIngredients: bottles.length > 0 ? [{ bottleId: bottles[0].id, mlPerDrink: 50 }] : [],
     });
@@ -223,16 +229,37 @@ export const EstoqueView: React.FC = () => {
       volume: prod.volume || '',
       alcoholContent: prod.alcoholContent || '',
       price: prod.price.toString(),
+      costPrice: prod.costPrice !== undefined ? prod.costPrice.toString() : '',
       stock: prod.stock.toString(),
       minStockAlert: prod.minStockAlert.toString(),
       unit: prod.unit,
       imageUrl: prod.imageUrl,
+      imageFocalPoint: prod.imageFocalPoint || 'center',
       isAvailable: prod.isAvailable,
       recipeIngredients: prod.recipeIngredients
         ? prod.recipeIngredients.map((r) => ({ bottleId: r.bottleId, mlPerDrink: r.mlPerDrink }))
         : [],
     });
     setIsProductModalOpen(true);
+  };
+
+  const handleCalculateCostFromRecipe = () => {
+    let total = 0;
+    let found = false;
+    productFormData.recipeIngredients.forEach((row) => {
+      const bottle = bottles.find((b) => b.id === row.bottleId);
+      if (bottle && bottle.bottleCapacityMl > 0 && bottle.costPerBottle > 0) {
+        const mlCost = (row.mlPerDrink / bottle.bottleCapacityMl) * bottle.costPerBottle;
+        total += mlCost;
+        found = true;
+      }
+    });
+    if (found) {
+      setProductFormData((prev) => ({
+        ...prev,
+        costPrice: total.toFixed(2),
+      }));
+    }
   };
 
   const handleSaveProductForm = (e: React.FormEvent) => {
@@ -250,6 +277,15 @@ export const EstoqueView: React.FC = () => {
         };
       });
 
+    // Parse cost price: distinguish unset from 0
+    let parsedCostPrice: number | undefined = undefined;
+    if (productFormData.costPrice.trim() !== '') {
+      const parsed = parseFloat(productFormData.costPrice.replace(',', '.'));
+      if (!isNaN(parsed)) {
+        parsedCostPrice = Math.max(0, parsed);
+      }
+    }
+
     const newProd: Product = {
       id: editingProduct ? editingProduct.id : `prod-${Date.now()}`,
       name: productFormData.name.trim(),
@@ -263,12 +299,14 @@ export const EstoqueView: React.FC = () => {
       volume: productFormData.volume.trim() || undefined,
       alcoholContent: productFormData.alcoholContent.trim() || undefined,
       price: parseFloat(productFormData.price.replace(',', '.')) || 0,
+      costPrice: parsedCostPrice,
       stock: parseInt(productFormData.stock, 10) || 0,
       minStockAlert: parseInt(productFormData.minStockAlert, 10) || 0,
       unit: productFormData.unit,
       imageUrl:
         productFormData.imageUrl.trim() ||
         'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=800&q=80',
+      imageFocalPoint: productFormData.imageFocalPoint,
       isAvailable: productFormData.isAvailable,
     };
 
@@ -618,7 +656,7 @@ export const EstoqueView: React.FC = () => {
               <thead className="bg-[#1a2342] text-neutral-300 uppercase tracking-wider text-[10px] border-b border-[#1f2945]">
                 <tr>
                   <th className="p-3">Drink / Item</th>
-                  <th className="p-3">Preço</th>
+                  <th className="p-3">Venda / Custo</th>
                   <th className="p-3">Ficha Técnica</th>
                   <th className="p-3">Rendimento / Garrafa</th>
                   <th className="p-3">Status</th>
@@ -633,7 +671,9 @@ export const EstoqueView: React.FC = () => {
                         <img
                           src={prod.imageUrl}
                           alt={prod.name}
-                          className="w-9 h-9 object-cover border border-[#253257] grayscale shrink-0"
+                          className={`w-9 h-9 object-cover border border-[#253257] shrink-0 rounded ${
+                            prod.imageFocalPoint === 'top' ? 'object-top' : prod.imageFocalPoint === 'bottom' ? 'object-bottom' : 'object-center'
+                          }`}
                         />
                         <div>
                           <span className="font-semibold text-white block text-xs">
@@ -646,8 +686,17 @@ export const EstoqueView: React.FC = () => {
                       </div>
                     </td>
 
-                    <td className="p-3 font-mono font-bold text-white text-xs">
-                      {formatPrice(prod.price)}
+                    <td className="p-3 font-mono text-xs">
+                      <div className="font-bold text-white">{formatPrice(prod.price)}</div>
+                      {prod.costPrice !== undefined ? (
+                        <div className="text-[10px] text-orange-400 font-medium">
+                          Custo: {formatPrice(prod.costPrice)}
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-neutral-500 italic">
+                          Custo não inf.
+                        </div>
+                      )}
                     </td>
 
                     {/* Recipe */}
@@ -901,7 +950,7 @@ export const EstoqueView: React.FC = () => {
 
                 <div>
                   <label className="block text-neutral-300 font-medium mb-1">
-                    Categoria
+                    Categoria *
                   </label>
                   <select
                     value={productFormData.category}
@@ -913,12 +962,14 @@ export const EstoqueView: React.FC = () => {
                     }
                     className="w-full bg-[#1a2342] border border-[#253257] p-2 rounded text-white focus:outline-none focus:border-[#ff5a1f]"
                   >
-                    <option value="autorais">Autorais</option>
-                    <option value="classicos">Clássicos</option>
+                    <option value="autorais">1. Autorais</option>
+                    <option value="contemporaneos">2. Contemporâneos</option>
+                    <option value="classicos">3. Clássicos</option>
+                    <option value="sem_alcool">4. Sem Álcool</option>
+                    <option value="experiencias">5. Experiências</option>
                     <option value="doses">Doses</option>
                     <option value="cervejas">Cervejas</option>
                     <option value="vinhos">Vinhos</option>
-                    <option value="sem_alcool">Sem Álcool</option>
                     <option value="petiscos">Petiscos</option>
                   </select>
                 </div>
@@ -939,7 +990,7 @@ export const EstoqueView: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-neutral-300 font-medium mb-1">
                     Preço de Venda (R$) *
@@ -957,12 +1008,42 @@ export const EstoqueView: React.FC = () => {
                 </div>
 
                 <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-neutral-300 font-medium truncate">
+                      Preço de Custo (R$)
+                    </label>
+                    {productFormData.recipeIngredients.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleCalculateCostFromRecipe}
+                        className="text-[10px] text-orange-400 hover:text-orange-300 underline shrink-0 cursor-pointer"
+                        title="Calcular a partir dos ml e custo das garrafas"
+                      >
+                        Auto
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Ex: 12.50 (Opcional)"
+                    value={productFormData.costPrice}
+                    onChange={(e) =>
+                      setProductFormData({ ...productFormData, costPrice: e.target.value })
+                    }
+                    className="w-full bg-[#1a2342] border border-[#253257] p-2 rounded text-white font-mono focus:outline-none focus:border-[#ff5a1f]"
+                  />
+                  <p className="text-[9px] text-neutral-400 mt-0.5">
+                    Apenas gestão (lucro bruto)
+                  </p>
+                </div>
+
+                <div>
                   <label className="block text-neutral-300 font-medium mb-1">
                     Volume / Taça
                   </label>
                   <input
                     type="text"
-                    placeholder="Ex: 200ml, Taça Coupé, Dose 50ml"
+                    placeholder="Ex: 200ml, Dose"
                     value={productFormData.volume}
                     onChange={(e) =>
                       setProductFormData({ ...productFormData, volume: e.target.value })
@@ -1135,6 +1216,10 @@ export const EstoqueView: React.FC = () => {
                 value={productFormData.imageUrl}
                 onChange={(dataUrl) =>
                   setProductFormData({ ...productFormData, imageUrl: dataUrl })
+                }
+                focalPoint={productFormData.imageFocalPoint}
+                onFocalPointChange={(pt) =>
+                  setProductFormData({ ...productFormData, imageFocalPoint: pt })
                 }
               />
 

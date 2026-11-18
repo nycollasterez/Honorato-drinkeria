@@ -1,11 +1,14 @@
 export type ProductCategory =
   | 'autorais'
+  | 'contemporaneos'
   | 'classicos'
+  | 'sem_alcool'
+  | 'experiencias'
   | 'doses'
   | 'cervejas'
   | 'vinhos'
-  | 'sem_alcool'
-  | 'petiscos';
+  | 'petiscos'
+  | string;
 
 export interface RecipeIngredient {
   bottleId: string;
@@ -24,6 +27,8 @@ export interface Product {
   volume?: string; // e.g. "250ml", "Dose 50ml", "Garrafa 750ml"
   alcoholContent?: string; // e.g. "18% ABV", "Sem álcool"
   price: number;
+  costPrice?: number; // Preço de custo do coquetel/item em R$ (visível apenas para gestão)
+  imageFocalPoint?: 'center' | 'top' | 'bottom'; // Ponto de foco/enquadramento para copos
   stock: number;
   minStockAlert: number;
   unit: 'un' | 'dose' | 'garrafa' | 'porcao';
@@ -50,6 +55,7 @@ export interface ComandaItem {
   productId: string;
   productName: string;
   unitPrice: number;
+  costPrice?: number; // Snapshot do preço de custo no momento do pedido
   quantity: number;
   notes?: string;
   addedAt: string;
@@ -57,16 +63,20 @@ export interface ComandaItem {
 
 export interface Comanda {
   id: string;
-  number: number; // e.g., Comanda 1, Comanda 2...
+  number: number; // Número da comanda de 1 a 100
   identifier: string; // e.g. "Mesa 04", "Balcão", "Lucas"
   customerName?: string;
   status: ComandaStatus;
+  cashRegisterSessionId?: string; // Identificador da sessão de caixa (atravessa meia-noite)
+  cancellationReason?: string; // Motivo obrigatório em caso de cancelamento
+  cancelledBy?: string; // Usuário responsável pelo cancelamento
+  cancelledAt?: string; // Data e hora do cancelamento
   items: ComandaItem[];
   openedAt: string;
   closedAt?: string;
   notes?: string;
-  includeServiceCharge: boolean; // 10%
-  serviceChargePercent: number; // 10% default
+  includeServiceCharge: boolean; // Taxa de serviço (desativada por padrão)
+  serviceChargePercent: number; // 0% padrão
   paymentMethod?: PaymentMethod;
   totalPaid?: number;
 }
@@ -97,6 +107,7 @@ export interface Transaction {
 export interface CashRegisterState {
   isOpen: boolean;
   openedAt: string;
+  sessionId?: string; // ID da sessão de caixa (ex: sess-17938210) para agrupar atendimentos que passam da meia-noite
   initialCash: number;
   currentCashBalance: number;
   totalRevenue: number;
@@ -113,6 +124,7 @@ export interface CashRegisterState {
 export interface DailyClosingReport {
   id: string;
   date: string; // YYYY-MM-DD
+  sessionId?: string; // Sessão do caixa encerrado
   openedAt: string;
   closedAt: string;
   closedBy: string;

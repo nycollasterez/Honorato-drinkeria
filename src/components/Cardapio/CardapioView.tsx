@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { Product } from '../../types';
-import { CATEGORY_LABELS } from '../../data/initialData';
+import { Product, ProductCategory } from '../../types';
+import { CATEGORY_LABELS, MENU_CATEGORIES_ORDER } from '../../data/initialData';
 import {
   Search,
   Wine,
@@ -9,46 +9,41 @@ import {
   X,
   GlassWater,
   Info,
+  ChevronRight,
+  Eye,
 } from 'lucide-react';
 
 export const CardapioView: React.FC = () => {
-  const { products } = useApp();
+  const { products, menuCoverImage, menuCoverFocalPoint } = useApp();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeModalProduct, setActiveModalProduct] = useState<Product | null>(null);
-  const [activeMobileId, setActiveMobileId] = useState<string | null>(null);
   const [hoveredCardId, setHoveredCardId] = useState<string | null>(null);
-  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
 
-  // Detecta se é celular/touch vs computador (desktop com mouse)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const checkTouch = () => {
-      const isTouch = (
-        'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        window.matchMedia('(hover: none) and (pointer: coarse)').matches ||
-        window.innerWidth < 768
-      );
-      setIsTouchDevice(isTouch);
-    };
-
-    checkTouch();
-    window.addEventListener('resize', checkTouch, { passive: true });
-    return () => window.removeEventListener('resize', checkTouch);
-  }, []);
-
+  // Ordered categories list
   const categories = useMemo(() => {
-    return [
+    // 1. Autorais, 2. Contemporâneos, 3. Clássicos, 4. Sem Álcool, 5. Experiências
+    const baseList: { key: string; label: string }[] = [
       { key: 'all', label: 'Todos' },
-      { key: 'autorais', label: 'Autorais' },
-      { key: 'classicos', label: 'Clássicos' },
-      { key: 'doses', label: 'Doses' },
-      { key: 'cervejas', label: 'Cervejas' },
-      { key: 'sem_alcool', label: 'Sem Álcool' },
-      { key: 'petiscos', label: 'Petiscos' },
+      ...MENU_CATEGORIES_ORDER.map((catKey) => ({
+        key: catKey,
+        label: CATEGORY_LABELS[catKey] || catKey,
+      })),
     ];
-  }, []);
+
+    // Preserved categories if products exist
+    const otherKeys: ProductCategory[] = ['doses', 'cervejas', 'vinhos', 'petiscos'];
+    otherKeys.forEach((k) => {
+      if (products.some((p) => p.category === k)) {
+        baseList.push({
+          key: k,
+          label: CATEGORY_LABELS[k] || k,
+        });
+      }
+    });
+
+    return baseList;
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((item) => {
@@ -69,63 +64,6 @@ export const CardapioView: React.FC = () => {
     });
   }, [products, selectedCategory, searchQuery]);
 
-  // Sincronização de cor exclusiva para CELULAR: ao rolar na tela touch, o item que passa pelo centro fica colorido
-  // No computador (desktop), este efeito de scroll NÃO roda; apenas o hover do mouse colore o item!
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    if (!isTouchDevice) {
-      setActiveMobileId(null);
-      return;
-    }
-
-    let ticking = false;
-
-    const detectActiveCardInViewport = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const cards = document.querySelectorAll<HTMLElement>('[data-cardapio-card]');
-          if (cards.length === 0) {
-            ticking = false;
-            return;
-          }
-
-          // Zona focal de leitura no celular (cerca de 42% da altura da tela)
-          const viewportFocusY = window.innerHeight * 0.42;
-          let closestId: string | null = null;
-          let minDistance = Infinity;
-
-          cards.forEach((card) => {
-            const rect = card.getBoundingClientRect();
-            const cardCenterY = rect.top + rect.height / 2;
-            const distance = Math.abs(cardCenterY - viewportFocusY);
-
-            // Considera itens visíveis na tela do celular
-            if (rect.bottom > 60 && rect.top < window.innerHeight - 60) {
-              if (distance < minDistance) {
-                minDistance = distance;
-                closestId = card.getAttribute('data-product-id');
-              }
-            }
-          });
-
-          if (closestId) {
-            setActiveMobileId(closestId);
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    detectActiveCardInViewport();
-    window.addEventListener('scroll', detectActiveCardInViewport, { passive: true });
-
-    return () => {
-      window.removeEventListener('scroll', detectActiveCardInViewport);
-    };
-  }, [filteredProducts, isTouchDevice]);
-
   const formatPrice = (val: number | string | undefined | null) => {
     if (val === undefined || val === null) return 'R$ 0,00';
     const num = typeof val === 'number' ? val : parseFloat(String(val).replace(',', '.')) || 0;
@@ -134,11 +72,35 @@ export const CardapioView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0c1122] text-[#f0f4fc] pb-24 touch-manipulation">
-      {/* Clean Hero Header */}
-      <section className="border-b border-[#1f2945] bg-[#0e1529] py-8 sm:py-10 px-4 text-center">
-        <div className="max-w-xl mx-auto space-y-3">
-          <div className="w-14 h-14 mx-auto rounded-2xl overflow-hidden border-2 border-[#ff5a1f] shadow-lg shadow-[#ff5a1f]/30">
-            <img src="./logo.jpg" alt="Pompéia Drinkeria" className="w-full h-full object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).src = './favicon.svg'; }} />
+      {/* Hero Header (com suporte a imagem de capa customizada) */}
+      <section className="relative border-b border-[#1f2945] bg-[#0e1529] py-8 sm:py-12 px-4 text-center overflow-hidden">
+        {menuCoverImage && (
+          <div className="absolute inset-0 z-0">
+            <img
+              src={menuCoverImage}
+              alt="Capa do Cardápio"
+              className={`w-full h-full object-cover opacity-25 ${
+                menuCoverFocalPoint === 'top'
+                  ? 'object-top'
+                  : menuCoverFocalPoint === 'bottom'
+                  ? 'object-bottom'
+                  : 'object-center'
+              }`}
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0c1122]/60 via-[#0e1529]/80 to-[#0c1122]" />
+          </div>
+        )}
+
+        <div className="relative z-10 max-w-xl mx-auto space-y-3">
+          <div className="w-14 h-14 sm:w-16 sm:h-16 mx-auto rounded-2xl overflow-hidden border-2 border-[#ff5a1f] shadow-lg shadow-[#ff5a1f]/30">
+            <img
+              src="./logo.jpg"
+              alt="Pompéia Drinkeria"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = './favicon.svg';
+              }}
+            />
           </div>
 
           <div>
@@ -157,8 +119,8 @@ export const CardapioView: React.FC = () => {
       </section>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-4 sm:pt-6">
-        {/* Search & Categories Bar (Sticky no celular e desktop com suporte a notch) */}
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 pt-4 sm:pt-6">
+        {/* Search & Categories Bar (Faixa horizontal compacta com rolagem suave no celular) */}
         <div className="space-y-2.5 sticky top-[calc(3.5rem+env(safe-area-inset-top,0px))] z-30 bg-[#0c1122]/95 backdrop-blur-md py-2.5 sm:py-3 border-b border-[#1f2945]">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
@@ -181,7 +143,7 @@ export const CardapioView: React.FC = () => {
             )}
           </div>
 
-          {/* Quick Categories com suporte a rolagem touch suave */}
+          {/* Categorias: faixa horizontal compacta com rolagem lateral no celular */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none touch-pan-x">
             {categories.map((cat) => {
               const active = selectedCategory === cat.key;
@@ -190,7 +152,7 @@ export const CardapioView: React.FC = () => {
                   key={cat.key}
                   type="button"
                   onClick={() => setSelectedCategory(cat.key)}
-                  className={`px-3 py-1.5 text-xs whitespace-nowrap transition-all border cursor-pointer select-none rounded-md ${
+                  className={`px-3 py-1.5 text-xs whitespace-nowrap transition-all border cursor-pointer select-none rounded-md shrink-0 ${
                     active
                       ? 'bg-[#ff5a1f] text-white border-[#ff5a1f] font-bold shadow-md shadow-[#ff5a1f]/30'
                       : 'bg-[#13192f] text-neutral-300 border-[#253257] hover:text-white hover:border-[#ff5a1f]/60'
@@ -206,62 +168,57 @@ export const CardapioView: React.FC = () => {
         {/* Counter and phone hint */}
         <div className="py-2.5 flex items-center justify-between text-[11px] sm:text-xs text-neutral-400">
           <span>{filteredProducts.length} opções disponíveis</span>
-          <span className="sm:hidden text-[#8ba7ff]">Toque no card para ver receita</span>
+          <span className="sm:hidden text-orange-400/90 font-medium">Toque para ver detalhes</span>
         </div>
 
-        {/* Product Cards */}
+        {/* Product Cards Grid: 
+            CELULAR: 2 colunas lado a lado (grid-cols-2), cards compactos
+            COMPUTADOR: Layout original preservado (sm:grid-cols-2 lg:grid-cols-3)
+        */}
         {filteredProducts.length === 0 ? (
           <div className="text-center py-16 border border-[#1f2945] bg-[#13192f] rounded-xl my-6">
             <GlassWater className="w-8 h-8 mx-auto text-neutral-500 mb-2" />
             <p className="text-sm text-neutral-300">Nenhum item encontrado</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5">
             {filteredProducts.map((prod) => {
-              const isCardActive = isTouchDevice
-                ? activeMobileId === prod.id
-                : hoveredCardId === prod.id;
+              const focalClass =
+                prod.imageFocalPoint === 'top'
+                  ? 'object-top'
+                  : prod.imageFocalPoint === 'bottom'
+                  ? 'object-bottom'
+                  : 'object-center';
 
               return (
                 <article
                   key={prod.id}
                   data-cardapio-card
                   data-product-id={prod.id}
-                  onMouseEnter={() => !isTouchDevice && setHoveredCardId(prod.id)}
-                  onMouseLeave={() => !isTouchDevice && setHoveredCardId(null)}
-                  onClick={() => {
-                    if (isTouchDevice) setActiveMobileId(prod.id);
-                    setActiveModalProduct(prod);
-                  }}
-                  className={`group border bg-[#13192f] rounded-xl transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden relative ${
-                    isCardActive
-                      ? 'border-[#ff5a1f] ring-2 ring-[#ff5a1f]/40 shadow-xl shadow-black/80'
-                      : 'border-[#1f2945] hover:border-[#ff5a1f]/60'
-                  }`}
+                  onMouseEnter={() => setHoveredCardId(prod.id)}
+                  onMouseLeave={() => setHoveredCardId(null)}
+                  onClick={() => setActiveModalProduct(prod)}
+                  className="group border border-[#1f2945] hover:border-[#ff5a1f]/70 bg-[#13192f] rounded-xl transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden relative shadow-sm hover:shadow-lg hover:shadow-black/60"
                 >
-                  {/* Photo: no computador colore no hover do mouse; no celular colore no scroll focal */}
-                  <div className="relative aspect-16/10 overflow-hidden bg-[#0c1122]">
+                  {/* Photo: Compact aspect ratio on mobile, original 16/10 on desktop */}
+                  <div className="relative aspect-[4/3] sm:aspect-16/10 overflow-hidden bg-[#0c1122]">
                     <img
                       src={prod.imageUrl}
                       alt={prod.name}
-                      className={`w-full h-full object-cover transition-all duration-500 ease-out ${
-                        isCardActive
-                          ? 'grayscale-0 scale-[1.04] contrast-105'
-                          : 'grayscale contrast-125 group-hover:grayscale-0 group-hover:scale-105 group-hover:contrast-105'
-                      }`}
+                      className={`w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 ${focalClass}`}
                       loading="lazy"
                     />
 
-                    {/* Badge da categoria */}
-                    <div className="absolute top-2 left-2">
-                      <span className="bg-[#0c1122]/90 backdrop-blur-sm border border-[#ff5a1f]/40 text-[#ff5a1f] text-[9px] uppercase tracking-wider px-2 py-0.5 font-bold rounded">
+                    {/* Badge da categoria (compacto no celular) */}
+                    <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2">
+                      <span className="bg-[#0c1122]/90 backdrop-blur-sm border border-[#ff5a1f]/40 text-[#ff5a1f] text-[8px] sm:text-[9px] uppercase tracking-wider px-1.5 sm:px-2 py-0.5 font-bold rounded">
                         {CATEGORY_LABELS[prod.category] || prod.category}
                       </span>
                     </div>
 
                     {/* Badge de Volume */}
                     {prod.volume && (
-                      <div className="absolute bottom-2 left-2 text-[10px] text-neutral-300 bg-[#0c1122]/85 backdrop-blur-sm px-2 py-0.5 font-mono border border-[#1f2945] rounded">
+                      <div className="hidden sm:block absolute bottom-2 left-2 text-[10px] text-neutral-300 bg-[#0c1122]/85 backdrop-blur-sm px-2 py-0.5 font-mono border border-[#1f2945] rounded">
                         {prod.volume}
                       </div>
                     )}
@@ -269,38 +226,39 @@ export const CardapioView: React.FC = () => {
                     {/* Indicador de esgotado */}
                     {!prod.isAvailable && (
                       <div className="absolute inset-0 bg-[#0c1122]/90 flex items-center justify-center">
-                        <span className="border border-[#ff5a1f] text-[#ff5a1f] text-[10px] uppercase px-2.5 py-1 font-bold tracking-wider rounded">
+                        <span className="border border-[#ff5a1f] text-[#ff5a1f] text-[9px] sm:text-[10px] uppercase px-2 py-0.5 sm:px-2.5 sm:py-1 font-bold tracking-wider rounded">
                           Esgotado
                         </span>
                       </div>
                     )}
                   </div>
 
-                  {/* Content */}
-                  <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                  {/* Content: Compact padding and typography on mobile, spacious on desktop */}
+                  <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between space-y-1.5 sm:space-y-3">
                     <div>
-                      <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-editorial text-lg sm:text-xl font-bold text-white leading-tight">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-0.5 sm:gap-2">
+                        <h3 className="font-editorial text-xs sm:text-lg lg:text-xl font-bold text-white leading-tight line-clamp-1 sm:line-clamp-none">
                           {prod.name}
                         </h3>
                         {/* Preço em destaque */}
-                        <span className="text-base sm:text-lg font-bold text-[#ff5a1f] font-mono shrink-0">
+                        <span className="text-xs sm:text-base lg:text-lg font-bold text-[#ff5a1f] font-mono shrink-0">
                           {formatPrice(prod.price)}
                         </span>
                       </div>
 
-                      <p className="text-xs text-neutral-300 line-clamp-2 mt-1.5 leading-relaxed">
+                      {/* Descrição: recolhida no celular para economizar tela, visível nos detalhes */}
+                      <p className="hidden sm:block text-xs text-neutral-300 line-clamp-2 mt-1.5 leading-relaxed">
                         {prod.description}
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-[#1f2945] flex items-center justify-between text-xs">
-                      <span className="text-[11px] text-[#8ba7ff]">
+                    <div className="pt-1.5 sm:pt-2 border-t border-[#1f2945] flex items-center justify-between text-[10px] sm:text-xs">
+                      <span className="hidden sm:inline text-[11px] text-[#8ba7ff]">
                         {prod.alcoholContent || ''}
                       </span>
-                      <span className="text-[10px] text-neutral-400 uppercase tracking-wider group-hover:text-[#ff5a1f] transition-colors flex items-center gap-1 font-semibold">
+                      <span className="text-[9px] sm:text-[10px] text-neutral-400 uppercase tracking-wider group-hover:text-[#ff5a1f] transition-colors flex items-center gap-1 font-semibold w-full sm:w-auto justify-end">
                         <span>Ver detalhes</span>
-                        <span>→</span>
+                        <ChevronRight className="w-3 h-3" />
                       </span>
                     </div>
                   </div>
@@ -317,17 +275,17 @@ export const CardapioView: React.FC = () => {
         </footer>
       </div>
 
-      {/* Drink Detail Modal (Otimizado para Celular em tela cheia suave) */}
+      {/* Drink Detail Modal (Ao tocar no celular, abre detalhes completos) */}
       {activeModalProduct && (
         <div
-          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          className="fixed inset-0 z-50 bg-[#0c1122]/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
           onClick={() => setActiveModalProduct(null)}
         >
           <div
             className="relative w-full max-w-md bg-[#13192f] border border-[#ff5a1f]/40 max-h-[92dvh] overflow-y-auto shadow-2xl my-auto rounded-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Botão fechar com alvo de toque touch de 44px */}
+            {/* Botão fechar com alvo de toque de 40px */}
             <button
               type="button"
               onClick={() => setActiveModalProduct(null)}
@@ -337,12 +295,18 @@ export const CardapioView: React.FC = () => {
               <X className="w-4 h-4" />
             </button>
 
-            {/* Foto no modal em cores reais para o cliente ver o drink */}
-            <div className="relative aspect-16/10 bg-[#0c1122] overflow-hidden">
+            {/* Foto ampliada com enquadramento preservado */}
+            <div className="relative aspect-16/10 bg-[#0c1122] overflow-hidden rounded-t-2xl">
               <img
                 src={activeModalProduct.imageUrl}
                 alt={activeModalProduct.name}
-                className="w-full h-full object-cover transition-all duration-500"
+                className={`w-full h-full object-cover ${
+                  activeModalProduct.imageFocalPoint === 'top'
+                    ? 'object-top'
+                    : activeModalProduct.imageFocalPoint === 'bottom'
+                    ? 'object-bottom'
+                    : 'object-center'
+                }`}
               />
               <div className="absolute top-3 left-3">
                 <span className="bg-[#0c1122]/90 border border-[#ff5a1f]/50 text-[#ff5a1f] text-[10px] uppercase tracking-wider px-2.5 py-0.5 font-bold rounded">
@@ -369,7 +333,7 @@ export const CardapioView: React.FC = () => {
               {/* Specs */}
               <div className="grid grid-cols-2 gap-2 py-2.5 border-y border-[#1f2945] text-xs text-neutral-300">
                 <div>
-                  <span className="block text-[10px] uppercase tracking-wider text-neutral-400">Volume</span>
+                  <span className="block text-[10px] uppercase tracking-wider text-neutral-400">Volume / Taça</span>
                   <span className="text-white font-medium">{activeModalProduct.volume || 'Dose'}</span>
                 </div>
                 <div>
@@ -381,7 +345,7 @@ export const CardapioView: React.FC = () => {
               {/* Ingredients */}
               {activeModalProduct.ingredients && activeModalProduct.ingredients.length > 0 && (
                 <div className="text-xs space-y-1.5">
-                  <span className="text-[10px] uppercase font-semibold text-[#8ba7ff] block tracking-wider">
+                  <span className="text-[10px] uppercase font-semibold text-[#ff5a1f] block tracking-wider">
                     Composição & Ingredientes:
                   </span>
                   <p className="text-neutral-200 leading-relaxed">
@@ -397,7 +361,7 @@ export const CardapioView: React.FC = () => {
                 </div>
               )}
 
-              {/* Action buttons */}
+              {/* Action button */}
               <button
                 type="button"
                 onClick={() => setActiveModalProduct(null)}

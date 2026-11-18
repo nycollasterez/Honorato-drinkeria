@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Comanda, ComandaStatus, Product } from '../../types';
 import { CATEGORY_LABELS } from '../../data/initialData';
 import { ReceiptModal } from '../Common/ReceiptModal';
+import { ComandasHistoryModal } from './ComandasHistoryModal';
 import {
   Plus,
   Search,
@@ -29,22 +30,29 @@ export const ComandasView: React.FC = () => {
     addItemToComanda,
     removeItemFromComanda,
     updateComandaStatus,
-    toggleServiceCharge,
+    cancelComanda,
+    clearComandasOnCashClose,
+    cashRegister,
+    currentUser,
     selectedComandaId,
     setSelectedComandaId,
     setActiveView,
   } = useApp();
 
   // Filters & Search
-  const [statusFilter, setStatusFilter] = useState<'all' | 'aberta' | 'fechando' | 'paga'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'aberta' | 'fechando' | 'paga' | 'cancelada'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Modals
   const [isNewComandaModalOpen, setIsNewComandaModalOpen] = useState<boolean>(false);
   const [isAddItemModalOpen, setIsAddItemModalOpen] = useState<boolean>(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState<boolean>(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState<boolean>(false);
+  const [cancelReason, setCancelReason] = useState<string>('');
 
-  // New comanda form state
+  // New comanda form state (1 to 100 selector)
+  const [selectedNumber, setSelectedNumber] = useState<number>(1);
   const [newIdentifier, setNewIdentifier] = useState<string>('');
   const [newCustomerName, setNewCustomerName] = useState<string>('');
   const [newNotes, setNewNotes] = useState<string>('');
@@ -63,9 +71,38 @@ export const ComandasView: React.FC = () => {
     return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  // Filtered comandas
+  // Active numbers set (currently open or closing comandas)
+  const activeNumbers = useMemo(() => {
+    return new Set(
+      comandas
+        .filter((c) => c.status === 'aberta' || c.status === 'fechando')
+        .map((c) => c.number)
+    );
+  }, [comandas]);
+
+  // First available number
+  const firstAvailableNumber = useMemo(() => {
+    for (let i = 1; i <= 100; i++) {
+      if (!activeNumbers.has(i)) return i;
+    }
+    return 1;
+  }, [activeNumbers]);
+
+  // Filtered comandas (with option: Limpar visualização das comandas ao fechar o caixa)
   const filteredComandas = useMemo(() => {
     return comandas.filter((c) => {
+      // Regra do Requisito 3: "Limpar visualização das comandas ao fechar o caixa"
+      if (clearComandasOnCashClose) {
+        const isCurrentSession =
+          c.cashRegisterSessionId &&
+          cashRegister.sessionId &&
+          c.cashRegisterSessionId === cashRegister.sessionId;
+        const isPending = c.status === 'aberta' || c.status === 'fechando';
+        if (!isCurrentSession && !isPending) {
+          return false;
+        }
+      }
+
       if (statusFilter !== 'all' && c.status !== statusFilter) return false;
       if (searchQuery.trim() !== '') {
         const q = searchQuery.toLowerCase();
@@ -76,22 +113,22 @@ export const ComandasView: React.FC = () => {
       }
       return true;
     });
-  }, [comandas, statusFilter, searchQuery]);
+  }, [comandas, statusFilter, searchQuery, clearComandasOnCashClose, cashRegister.sessionId]);
 
   // Selected comanda
   const activeComanda = useMemo(() => {
     if (!selectedComandaId) {
-      // default to first open or first comanda
       return (
-        comandas.find((c) => c.status === 'aberta' || c.status === 'fechando') ||
+        filteredComandas.find((c) => c.status === 'aberta' || c.status === 'fechando') ||
+        filteredComandas[0] ||
         comandas[0] ||
         null
       );
     }
     return comandas.find((c) => c.id === selectedComandaId) || null;
-  }, [comandas, selectedComandaId]);
+  }, [comandas, filteredComandas, selectedComandaId]);
 
-  // Totals of active comanda
+  // Totals of active comanda (Requirement 2: no 10% fee for active comandas)
   const subtotal = activeComanda
     ? activeComanda.items.reduce((acc, i) => acc + i.unitPrice * i.quantity, 0)
     : 0;
@@ -113,27 +150,64 @@ export const ComandasView: React.FC = () => {
     });
   }, [products, itemCategoryFilter, itemSearchQuery]);
 
-  // Handle open comanda
+  // Handle open comanda (1 to 100 selector)
   const handleCreateComanda = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newIdentifier.trim()) return;
+    if (!selectedNumber || selectedNumber < 1 || selectedNumber > 100) {
+      alert('Selecione um número de comanda válido entre 1 e 100.');
+      return;
+    }
+    if (activeNumbers.has(selectedNumber)) {
+      alert(`A Comanda ${selectedNumber} já está ativa no momento. Escolha outro número disponível.`);
+      return;
+    }
 
-    const created = openComanda(newIdentifier, newCustomerName, newNotes);
-    setNewIdentifier('');
-    setNewCustomerName('');
-    setNewNotes('');
-    setIsNewComandaModalOpen(false);
-    setSelectedComandaId(created.id);
+    const identifier = newIdentifier.trim() || `Mesa ${selectedNumber}`;
+    try {
+      const created = openComanda(
+        selectedNumber,
+        identifier,
+        newCustomerName.trim() || undefined,
+        newNotes.trim() || undefined
+      );
+      setNewIdentifier('');
+      setNewCustomerName('');
+      setNewNotes('');
+      setIsNewComandaModalOpen(false);
+      setSelectedComandaId(created.id);
+    } catch (err: any) {
+      alert(err.message || 'Erro ao abrir comanda');
+    }
   };
 
   // Handle submit item to comanda
   const handleLaunchItem = () => {
     if (!activeComanda || !selectedProductId || itemQuantity <= 0) return;
+    if (activeComanda.status === 'cancelada' || activeComanda.status === 'paga') {
+      alert('Não é possível adicionar itens a uma comanda encerrada ou cancelada.');
+      return;
+    }
+
     addItemToComanda(activeComanda.id, selectedProductId, itemQuantity, itemNotes);
     setSelectedProductId('');
     setItemQuantity(1);
     setItemNotes('');
     setIsAddItemModalOpen(false);
+  };
+
+  // Handle cancellation with mandatory reason
+  const handleConfirmCancellation = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeComanda) return;
+    if (!cancelReason.trim()) {
+      alert('O motivo do cancelamento é obrigatório.');
+      return;
+    }
+
+    const userName = currentUser?.name || 'Administrador';
+    cancelComanda(activeComanda.id, cancelReason.trim(), userName);
+    setCancelReason('');
+    setIsCancelModalOpen(false);
   };
 
   const presetObservations = [
@@ -149,18 +223,40 @@ export const ComandasView: React.FC = () => {
     <div className="min-h-[calc(100vh-64px)] bg-[#0c1122] text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Top Control Bar */}
-        <div className="flex items-center justify-between gap-4 border-b border-[#1f2945] pb-4">
-          <h1 className="font-editorial text-2xl font-bold text-white">
-            Comandas
-          </h1>
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#1f2945] pb-4">
+          <div className="flex items-center gap-3">
+            <h1 className="font-editorial text-2xl font-bold text-white">
+              Comandas
+            </h1>
+            {clearComandasOnCashClose && (
+              <span className="text-[10px] bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded">
+                Visualização por Caixa Atual
+              </span>
+            )}
+          </div>
 
-          <button
-            onClick={() => setIsNewComandaModalOpen(true)}
-            className="px-3.5 py-2 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nova Comanda</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsHistoryModalOpen(true)}
+              className="px-3 py-2 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 rounded cursor-pointer transition-colors"
+              title="Consultar histórico geral de todas as comandas e caixas passados"
+            >
+              <Clock className="w-4 h-4 text-orange-400" />
+              <span>Histórico de Comandas</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setSelectedNumber(firstAvailableNumber);
+                setNewIdentifier(`Mesa ${firstAvailableNumber}`);
+                setIsNewComandaModalOpen(true);
+              }}
+              className="px-3.5 py-2 bg-[#ff5a1f] hover:bg-[#ff723f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 rounded cursor-pointer transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nova Comanda</span>
+            </button>
+          </div>
         </div>
 
         {/* Layout: Master List (Left) + Detail & Order Launcher (Right) */}
@@ -168,34 +264,35 @@ export const ComandasView: React.FC = () => {
           {/* LEFT: Comandas Grid / Selector (5 cols on lg) */}
           <div className="lg:col-span-5 space-y-4">
             {/* Search & Status Filters */}
-            <div className="space-y-3 bg-[#13192f] p-4 border border-[#1f2945]">
+            <div className="space-y-3 bg-[#13192f] p-4 border border-[#1f2945] rounded-xl shadow-sm">
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-300" />
                 <input
                   type="text"
-                  placeholder="Buscar comanda #, mesa ou cliente..."
+                  placeholder="Buscar comanda, mesa ou cliente..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#1a2342] border border-[#253257] pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-[#ff5a1f]"
+                  className="w-full bg-[#1a2342] border border-[#253257] pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-400 rounded focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
               {/* Status Segmented Buttons */}
-              <div className="grid grid-cols-4 gap-1 text-[11px]">
+              <div className="grid grid-cols-5 gap-1 text-[11px]">
                 {(
                   [
                     { key: 'all', label: 'Todas' },
                     { key: 'aberta', label: 'Abertas' },
                     { key: 'fechando', label: 'Fechando' },
                     { key: 'paga', label: 'Pagas' },
+                    { key: 'cancelada', label: 'Canceladas' },
                   ] as const
                 ).map((tab) => (
                   <button
                     key={tab.key}
                     onClick={() => setStatusFilter(tab.key)}
-                    className={`py-1.5 px-2 border text-center transition-colors cursor-pointer ${
+                    className={`py-1.5 px-1 border text-center transition-colors rounded cursor-pointer truncate ${
                       statusFilter === tab.key
-                        ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f] font-semibold'
+                        ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f]'
                         : 'bg-[#1a2342] text-neutral-300 border-[#1f2945] hover:text-white'
                     }`}
                   >
@@ -208,7 +305,7 @@ export const ComandasView: React.FC = () => {
             {/* List of Comandas */}
             <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
               {filteredComandas.length === 0 ? (
-                <div className="text-center py-12 border border-[#1f2945] p-6 bg-[#13192f]">
+                <div className="text-center py-12 border border-[#1f2945] p-6 bg-[#13192f] rounded-xl">
                   <FileText className="w-8 h-8 mx-auto text-neutral-300 mb-2 stroke-[1.2]" />
                   <p className="text-xs text-neutral-300">Nenhuma comanda encontrada neste filtro.</p>
                 </div>
@@ -219,32 +316,32 @@ export const ComandasView: React.FC = () => {
                     (acc, i) => acc + i.unitPrice * i.quantity,
                     0
                   );
-                  const cmdTotal = cmd.includeServiceCharge
-                    ? cmdSubtotal * 1.1
+                  const cmdTotal = cmd.status === 'paga' && cmd.includeServiceCharge
+                    ? cmdSubtotal + (cmdSubtotal * cmd.serviceChargePercent) / 100
                     : cmdSubtotal;
 
                   return (
                     <div
                       key={cmd.id}
                       onClick={() => setSelectedComandaId(cmd.id)}
-                      className={`p-4 border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      className={`p-4 border transition-all rounded-lg cursor-pointer flex items-center justify-between gap-3 ${
                         isSelected
                           ? 'bg-[#1a2342] border-[#ff5a1f] ring-1 ring-[#ff5a1f]/40'
                           : 'bg-[#13192f] border-[#1f2945] hover:border-[#253257]'
                       }`}
                     >
-                      <div className="space-y-1">
+                      <div className="space-y-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold px-1.5 py-0.5 border border-[#253257] bg-neutral-800 text-white">
-                            #{cmd.number.toString().padStart(2, '0')}
+                          <span className="font-mono text-xs font-bold px-1.5 py-0.5 border border-[#253257] bg-[#0c1122] text-white rounded">
+                            Comanda {cmd.number}
                           </span>
-                          <span className="font-semibold text-sm text-white">
+                          <span className="font-semibold text-sm text-white truncate">
                             {cmd.identifier}
                           </span>
                         </div>
 
                         {cmd.customerName && (
-                          <p className="text-xs text-neutral-300">
+                          <p className="text-xs text-neutral-300 truncate">
                             Cliente: {cmd.customerName}
                           </p>
                         )}
@@ -261,18 +358,22 @@ export const ComandasView: React.FC = () => {
                           {formatPrice(cmdTotal)}
                         </span>
                         <span
-                          className={`inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 mt-1 border ${
+                          className={`inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 mt-1 border rounded ${
                             cmd.status === 'aberta'
-                              ? 'border-[#303f6b] bg-neutral-800 text-white'
+                              ? 'border-[#303f6b] bg-navy-900 text-white'
                               : cmd.status === 'fechando'
                               ? 'border-[#ff5a1f] bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold'
-                              : 'border-[#1f2945] bg-[#13192f] text-neutral-300'
+                              : cmd.status === 'cancelada'
+                              ? 'border-rose-800 bg-rose-950/60 text-rose-300'
+                              : 'border-emerald-800 bg-emerald-950/60 text-emerald-300'
                           }`}
                         >
                           {cmd.status === 'aberta'
                             ? 'Aberta'
                             : cmd.status === 'fechando'
                             ? 'Pediu Conta'
+                            : cmd.status === 'cancelada'
+                            ? 'Cancelada'
                             : 'Paga'}
                         </span>
                       </div>
@@ -286,13 +387,13 @@ export const ComandasView: React.FC = () => {
           {/* RIGHT: Active Comanda Detailed View (7 cols on lg) */}
           <div className="lg:col-span-7">
             {activeComanda ? (
-              <div className="bg-[#13192f] border border-[#1f2945] p-5 sm:p-6 space-y-6">
+              <div className="bg-[#13192f] border border-[#1f2945] p-5 sm:p-6 space-y-6 rounded-xl shadow-sm">
                 {/* Header Info */}
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-[#1f2945]">
                   <div>
                     <div className="flex items-center gap-3">
-                      <span className="font-mono text-base font-bold px-2.5 py-1 border border-[#253257] bg-[#0c1122] text-white">
-                        Comanda #{activeComanda.number.toString().padStart(2, '0')}
+                      <span className="font-mono text-base font-bold px-2.5 py-1 border border-[#253257] bg-[#0c1122] text-white rounded">
+                        Comanda {activeComanda.number}
                       </span>
                       <h2 className="font-editorial text-2xl font-bold text-white">
                         {activeComanda.identifier}
@@ -314,7 +415,7 @@ export const ComandasView: React.FC = () => {
 
                   {/* Status Toggle & State */}
                   <div className="flex items-center gap-2">
-                    {activeComanda.status !== 'paga' && (
+                    {activeComanda.status !== 'paga' && activeComanda.status !== 'cancelada' && (
                       <button
                         onClick={() =>
                           updateComandaStatus(
@@ -322,7 +423,7 @@ export const ComandasView: React.FC = () => {
                             activeComanda.status === 'fechando' ? 'aberta' : 'fechando'
                           )
                         }
-                        className={`px-3 py-1.5 text-xs font-medium border cursor-pointer transition-colors ${
+                        className={`px-3 py-1.5 text-xs font-medium border rounded cursor-pointer transition-colors ${
                           activeComanda.status === 'fechando'
                             ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f]'
                             : 'bg-[#1a2342] text-neutral-300 border-[#253257] hover:border-neutral-500'
@@ -333,19 +434,39 @@ export const ComandasView: React.FC = () => {
                     )}
 
                     {activeComanda.status === 'paga' && (
-                      <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border border-[#ff5a1f]">
+                      <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-emerald-950 text-emerald-300 border border-emerald-800 rounded">
                         Paga
+                      </span>
+                    )}
+
+                    {activeComanda.status === 'cancelada' && (
+                      <span className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider bg-rose-950 text-rose-300 border border-rose-800 rounded">
+                        Cancelada
                       </span>
                     )}
                   </div>
                 </div>
 
+                {/* Cancelled Alert Banner */}
+                {activeComanda.status === 'cancelada' && (
+                  <div className="p-3.5 bg-rose-950/40 border border-rose-800/80 rounded-lg text-rose-200 text-xs space-y-1">
+                    <div className="flex items-center gap-1.5 font-bold text-rose-300">
+                      <AlertTriangle className="w-4 h-4 text-rose-400" />
+                      <span>Comanda Cancelada</span>
+                    </div>
+                    <p><strong>Motivo:</strong> {activeComanda.cancellationReason || 'Não informado'}</p>
+                    <p className="text-[10px] text-rose-400/80">
+                      Cancelada por: {activeComanda.cancelledBy || 'Administrador'} · {activeComanda.cancelledAt ? new Date(activeComanda.cancelledAt).toLocaleString('pt-BR') : ''}
+                    </p>
+                  </div>
+                )}
+
                 {/* Fast Action Buttons */}
-                {activeComanda.status !== 'paga' ? (
+                {activeComanda.status !== 'paga' && activeComanda.status !== 'cancelada' ? (
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => setIsAddItemModalOpen(true)}
-                      className="px-3 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 bg-[#ff5a1f] hover:bg-[#ff723f] text-white shadow-md shadow-[#ff5a1f]/30 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 rounded cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Lançar Item</span>
@@ -353,7 +474,7 @@ export const ComandasView: React.FC = () => {
 
                     <button
                       onClick={() => setIsReceiptModalOpen(true)}
-                      className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 rounded cursor-pointer"
                     >
                       <Printer className="w-3.5 h-3.5" />
                       <span>Conferência da Conta</span>
@@ -363,17 +484,29 @@ export const ComandasView: React.FC = () => {
                       onClick={() => {
                         setActiveView('caixa');
                       }}
-                      className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 rounded cursor-pointer"
                     >
                       <CreditCard className="w-3.5 h-3.5" />
                       <span>Ir ao Caixa Fechar</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setCancelReason('');
+                        setIsCancelModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 border border-rose-800 bg-rose-950/40 hover:bg-rose-900/60 text-xs font-semibold text-rose-300 flex items-center gap-1.5 rounded cursor-pointer"
+                      title="Cancelar comanda com justificativa obrigatória"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+                      <span>Cancelar Comanda</span>
                     </button>
                   </div>
                 ) : (
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => setIsReceiptModalOpen(true)}
-                      className="px-3 py-1.5 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow"
+                      className="px-3 py-1.5 bg-[#1a2342] border border-[#253257] text-white hover:bg-[#202b50] text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 rounded cursor-pointer"
                     >
                       <Printer className="w-3.5 h-3.5 stroke-[2.5]" />
                       <span>Imprimir Conta / Recibo</span>
@@ -388,18 +521,20 @@ export const ComandasView: React.FC = () => {
                   </h3>
 
                   {activeComanda.items.length === 0 ? (
-                    <div className="text-center py-10 border border-dashed border-[#1f2945] bg-[#1a2342]/60">
+                    <div className="text-center py-10 border border-dashed border-[#1f2945] bg-[#1a2342]/60 rounded-lg">
                       <Wine className="w-6 h-6 mx-auto text-neutral-300 mb-2 stroke-[1.2]" />
                       <p className="text-xs text-neutral-300">Comanda vazia</p>
-                      <button
-                        onClick={() => setIsAddItemModalOpen(true)}
-                        className="mt-2 text-xs text-white underline hover:text-neutral-300 cursor-pointer"
-                      >
-                        Lançar item
-                      </button>
+                      {activeComanda.status !== 'cancelada' && activeComanda.status !== 'paga' && (
+                        <button
+                          onClick={() => setIsAddItemModalOpen(true)}
+                          className="mt-2 text-xs text-orange-400 underline hover:text-orange-300 cursor-pointer"
+                        >
+                          Lançar item
+                        </button>
+                      )}
                     </div>
                   ) : (
-                    <div className="divide-y divide-neutral-800 border border-[#1f2945]">
+                    <div className="divide-y divide-navy-800 border border-[#1f2945] rounded-lg overflow-hidden">
                       {activeComanda.items.map((item) => (
                         <div
                           key={item.id}
@@ -407,7 +542,7 @@ export const ComandasView: React.FC = () => {
                         >
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-white bg-[#0c1122] border border-[#253257] px-1.5 py-0.2">
+                              <span className="font-mono font-bold text-white bg-[#0c1122] border border-[#253257] px-1.5 py-0.2 rounded">
                                 {item.quantity}x
                               </span>
                               <span className="font-medium text-white text-sm">
@@ -421,20 +556,20 @@ export const ComandasView: React.FC = () => {
                               </p>
                             )}
 
-                            <span className="text-[10px] text-neutral-300 pl-6 block">
+                            <span className="text-[10px] text-neutral-400 pl-6 block">
                               Lançado às {new Date(item.addedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
 
                           <div className="flex items-center gap-3 shrink-0">
-                            <span className="font-bold text-white">
+                            <span className="font-bold text-white font-mono">
                               {formatPrice(item.unitPrice * item.quantity)}
                             </span>
 
-                            {activeComanda.status !== 'paga' && (
+                            {activeComanda.status !== 'paga' && activeComanda.status !== 'cancelada' && (
                               <button
                                 onClick={() => removeItemFromComanda(activeComanda.id, item.id)}
-                                className="p-1 text-neutral-300 hover:text-white hover:bg-[#202b50] transition-colors"
+                                className="p-1 text-neutral-400 hover:text-red-400 hover:bg-[#202b50] rounded transition-colors"
                                 title="Cancelar / Estornar Item"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -447,37 +582,30 @@ export const ComandasView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Financial Summary & Service Fee */}
-                <div className="p-3 bg-[#1a2342] border border-[#1f2945] space-y-2 text-xs">
+                {/* Financial Summary (Requirement 2: no 10% fee) */}
+                <div className="p-3 bg-[#1a2342] border border-[#1f2945] rounded-lg space-y-2 text-xs">
                   <div className="flex justify-between text-neutral-300">
-                    <span>Subtotal:</span>
-                    <span className="font-mono">{formatPrice(subtotal)}</span>
+                    <span>Subtotal dos Itens:</span>
+                    <span className="font-mono text-white">{formatPrice(subtotal)}</span>
                   </div>
 
-                  <div className="flex items-center justify-between text-neutral-300">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={activeComanda.includeServiceCharge}
-                        onChange={() => toggleServiceCharge(activeComanda.id)}
-                        disabled={activeComanda.status === 'paga'}
-                        className="rounded-none border-[#253257] bg-[#13192f] text-white focus:ring-0"
-                      />
-                      <span>Serviço (10%)</span>
-                    </label>
-                    <span className="font-mono">
-                      {activeComanda.includeServiceCharge ? formatPrice(serviceAmount) : 'R$ 0,00'}
-                    </span>
-                  </div>
+                  {activeComanda.status === 'paga' && activeComanda.includeServiceCharge && serviceAmount > 0 && (
+                    <div className="flex justify-between text-neutral-400 text-[11px]">
+                      <span>Taxa de Serviço ({activeComanda.serviceChargePercent}%):</span>
+                      <span className="font-mono">{formatPrice(serviceAmount)}</span>
+                    </div>
+                  )}
 
                   <div className="flex justify-between items-center text-sm sm:text-base font-bold text-white pt-2 border-t border-[#1f2945]">
                     <span>TOTAL:</span>
-                    <span className="font-mono text-lg">{formatPrice(totalAmount)}</span>
+                    <span className="font-mono text-lg text-orange-400">
+                      {formatPrice(activeComanda.status === 'paga' && activeComanda.includeServiceCharge ? totalAmount : subtotal)}
+                    </span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="bg-[#13192f] border border-[#1f2945] p-12 text-center text-neutral-300">
+              <div className="bg-[#13192f] border border-[#1f2945] p-12 text-center text-neutral-300 rounded-xl">
                 <FileText className="w-10 h-10 mx-auto mb-3 stroke-[1.2] text-neutral-300" />
                 <p className="text-sm font-semibold text-white">Selecione uma comanda</p>
               </div>
@@ -486,12 +614,17 @@ export const ComandasView: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal: Nova Comanda */}
+      {/* Modal: Nova Comanda (1 to 100 selector) */}
       {isNewComandaModalOpen && (
         <div className="fixed inset-0 z-50 bg-[#0c1122]/85 backdrop-blur-sm flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overflow-x-hidden pt-4 sm:pt-6 pb-6">
           <div className="relative w-full max-w-md bg-[#13192f] border border-[#253257] p-4 sm:p-6 space-y-4 sm:space-y-5 text-white max-h-[92dvh] overflow-y-auto overflow-x-hidden rounded-xl shadow-2xl my-auto box-border">
             <div className="flex justify-between items-center border-b border-[#1f2945] pb-3">
-              <h3 className="font-editorial text-xl font-bold">Abrir Nova Comanda</h3>
+              <div>
+                <h3 className="font-editorial text-xl font-bold">Abrir Nova Comanda</h3>
+                <p className="text-[11px] text-neutral-400 mt-0.5">
+                  Numeração padronizada de 1 a 100
+                </p>
+              </div>
               <button
                 onClick={() => setIsNewComandaModalOpen(false)}
                 className="text-neutral-400 hover:text-white p-1 rounded transition-colors"
@@ -503,17 +636,48 @@ export const ComandasView: React.FC = () => {
 
             <form onSubmit={handleCreateComanda} className="space-y-4 text-xs">
               <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-neutral-300 font-semibold">
+                    Número da Comanda (1 a 100) *
+                  </label>
+                  <span className="text-[10px] text-neutral-400">
+                    {100 - activeNumbers.size} disponíveis
+                  </span>
+                </div>
+
+                <select
+                  required
+                  value={selectedNumber}
+                  onChange={(e) => {
+                    const num = parseInt(e.target.value, 10);
+                    setSelectedNumber(num);
+                    if (!newIdentifier || newIdentifier.startsWith('Mesa ')) {
+                      setNewIdentifier(`Mesa ${num}`);
+                    }
+                  }}
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 rounded text-white text-xs font-mono font-bold focus:outline-none focus:border-[#ff5a1f]"
+                >
+                  {Array.from({ length: 100 }, (_, i) => i + 1).map((n) => {
+                    const isInUse = activeNumbers.has(n);
+                    return (
+                      <option key={n} value={n} disabled={isInUse}>
+                        Comanda {n} {isInUse ? '(Em Uso · Ocupada)' : '(Disponível)'}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+
+              <div>
                 <label className="block text-neutral-300 font-semibold mb-1">
-                  Mesa ou Identificador * (Ex: Mesa 04, Balcão 02, Lounge)
+                  Mesa ou Identificador Local (Opcional)
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="Mesa 01"
+                  placeholder={`Mesa ${selectedNumber}`}
                   value={newIdentifier}
                   onChange={(e) => setNewIdentifier(e.target.value)}
                   className="w-full bg-[#1a2342] border border-[#253257] p-2.5 rounded text-white focus:outline-none focus:border-[#ff5a1f]"
-                  autoFocus
                 />
               </div>
 
@@ -555,7 +719,80 @@ export const ComandasView: React.FC = () => {
                   type="submit"
                   className="w-1/2 py-2.5 bg-[#ff5a1f] hover:bg-[#ff723f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold uppercase tracking-wider rounded transition-colors cursor-pointer"
                 >
-                  Abrir Comanda
+                  Abrir Comanda {selectedNumber}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Cancelar Comanda (com motivo obrigatório) */}
+      {isCancelModalOpen && activeComanda && (
+        <div className="fixed inset-0 z-50 bg-[#0c1122]/85 backdrop-blur-sm flex items-start sm:items-center justify-center p-2.5 sm:p-4 overflow-y-auto overflow-x-hidden pt-4 sm:pt-6 pb-6">
+          <div className="relative w-full max-w-md bg-[#13192f] border border-[#253257] p-4 sm:p-6 space-y-4 text-white rounded-xl shadow-2xl my-auto box-border">
+            <div className="flex justify-between items-center border-b border-[#1f2945] pb-3">
+              <h3 className="font-editorial text-xl font-bold text-rose-400 flex items-center gap-2">
+                <AlertTriangle className="w-5 h-5" />
+                <span>Cancelar Comanda</span>
+              </h3>
+              <button
+                onClick={() => setIsCancelModalOpen(false)}
+                className="text-neutral-400 hover:text-white p-1 rounded transition-colors"
+                aria-label="Fechar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmCancellation} className="space-y-4 text-xs">
+              <div className="p-3 bg-navy-950 border border-navy-800 rounded space-y-1">
+                <div className="flex justify-between font-mono font-bold text-white">
+                  <span>Comanda {activeComanda.number}</span>
+                  <span>{activeComanda.identifier}</span>
+                </div>
+                {activeComanda.customerName && (
+                  <p className="text-neutral-300 text-[11px]">
+                    Cliente: <strong className="text-white">{activeComanda.customerName}</strong>
+                  </p>
+                )}
+                <p className="text-[10px] text-neutral-400">
+                  {activeComanda.items.length} itens lançados ({formatPrice(subtotal)})
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-neutral-200 font-semibold mb-1">
+                  Motivo do Cancelamento *
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Informe detalhadamente o motivo do cancelamento (obrigatório)..."
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 rounded text-white focus:outline-none focus:border-rose-500"
+                  autoFocus
+                />
+              </div>
+
+              <p className="text-[10px] text-neutral-400">
+                A comanda receberá o status <strong>Cancelada</strong> e ficará registrada permanentemente no histórico com data, hora e responsável. Não será contabilizada nas vendas concluídas.
+              </p>
+
+              <div className="pt-2 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsCancelModalOpen(false)}
+                  className="w-1/2 py-2.5 border border-[#253257] text-neutral-300 hover:bg-[#1a2342] rounded transition-colors cursor-pointer"
+                >
+                  Voltar
+                </button>
+                <button
+                  type="submit"
+                  className="w-1/2 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold uppercase tracking-wider rounded transition-colors cursor-pointer shadow-md shadow-rose-600/30"
+                >
+                  Confirmar Cancelamento
                 </button>
               </div>
             </form>
@@ -571,7 +808,7 @@ export const ComandasView: React.FC = () => {
               <div>
                 <h3 className="font-editorial text-xl font-bold">Lançar Item no Pedido</h3>
                 <p className="text-xs text-neutral-300">
-                  Comanda #{activeComanda.number.toString().padStart(2, '0')} · {activeComanda.identifier}
+                  Comanda {activeComanda.number} · {activeComanda.identifier}
                 </p>
               </div>
               <button
@@ -589,26 +826,28 @@ export const ComandasView: React.FC = () => {
                 placeholder="Buscar produto..."
                 value={itemSearchQuery}
                 onChange={(e) => setItemSearchQuery(e.target.value)}
-                className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-xs text-white placeholder-neutral-400 focus:outline-none focus:border-[#ff5a1f]"
+                className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-xs text-white placeholder-neutral-400 rounded focus:outline-none focus:border-[#ff5a1f]"
               />
 
               <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none text-[11px]">
                 {[
                   { key: 'all', label: 'Todos' },
                   { key: 'autorais', label: 'Autorais' },
+                  { key: 'contemporaneos', label: 'Contemporâneos' },
                   { key: 'classicos', label: 'Clássicos' },
+                  { key: 'sem_alcool', label: 'Sem Álcool' },
+                  { key: 'experiencias', label: 'Experiências' },
                   { key: 'doses', label: 'Doses' },
                   { key: 'cervejas', label: 'Cervejas' },
-                  { key: 'sem_alcool', label: 'Sem Álcool' },
                   { key: 'petiscos', label: 'Petiscos' },
                 ].map((c) => (
                   <button
                     key={c.key}
                     type="button"
                     onClick={() => setItemCategoryFilter(c.key)}
-                    className={`px-2.5 py-1 border whitespace-nowrap ${
+                    className={`px-2.5 py-1 border rounded whitespace-nowrap ${
                       itemCategoryFilter === c.key
-                        ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f] font-bold'
+                        ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f]'
                         : 'bg-[#1a2342] text-neutral-300 border-[#1f2945] hover:text-white'
                     }`}
                   >
@@ -619,7 +858,7 @@ export const ComandasView: React.FC = () => {
             </div>
 
             {/* Product selection list */}
-            <div className="flex-1 overflow-y-auto divide-y divide-neutral-800 border border-[#1f2945] pr-1 max-h-56">
+            <div className="flex-1 overflow-y-auto divide-y divide-neutral-800 border border-[#1f2945] rounded-lg pr-1 max-h-56">
               {filteredProductsToLaunch.map((prod) => {
                 const isChosen = selectedProductId === prod.id;
                 return (
@@ -634,13 +873,13 @@ export const ComandasView: React.FC = () => {
                   >
                     <div>
                       <span className="font-semibold block">{prod.name}</span>
-                      <span className={`text-[10px] ${isChosen ? 'text-neutral-700' : 'text-neutral-300'}`}>
+                      <span className={`text-[10px] ${isChosen ? 'text-white/90' : 'text-neutral-400'}`}>
                         {CATEGORY_LABELS[prod.category]} · Estoque: {prod.stock} {prod.unit}
                       </span>
                     </div>
 
                     <div className="text-right shrink-0">
-                      <span className="font-bold">{formatPrice(prod.price)}</span>
+                      <span className="font-bold font-mono">{formatPrice(prod.price)}</span>
                     </div>
                   </div>
                 );
@@ -655,7 +894,7 @@ export const ComandasView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setItemQuantity((prev) => Math.max(1, prev - 1))}
-                    className="w-8 h-8 border border-[#253257] bg-[#1a2342] text-white flex items-center justify-center hover:bg-[#202b50]"
+                    className="w-8 h-8 border border-[#253257] bg-[#1a2342] text-white flex items-center justify-center hover:bg-[#202b50] rounded"
                   >
                     <Minus className="w-3.5 h-3.5" />
                   </button>
@@ -665,7 +904,7 @@ export const ComandasView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setItemQuantity((prev) => prev + 1)}
-                    className="w-8 h-8 border border-[#253257] bg-[#1a2342] text-white flex items-center justify-center hover:bg-[#202b50]"
+                    className="w-8 h-8 border border-[#253257] bg-[#1a2342] text-white flex items-center justify-center hover:bg-[#202b50] rounded"
                   >
                     <Plus className="w-3.5 h-3.5" />
                   </button>
@@ -687,7 +926,7 @@ export const ComandasView: React.FC = () => {
                           prev ? `${prev}, ${obs}` : obs
                         )
                       }
-                      className="px-2 py-1 text-[11px] border border-[#1f2945] bg-[#1a2342] hover:border-[#303f6b] text-neutral-300"
+                      className="px-2 py-1 text-[11px] border border-[#1f2945] bg-[#1a2342] hover:border-[#303f6b] text-neutral-300 rounded"
                     >
                       + {obs}
                     </button>
@@ -701,7 +940,7 @@ export const ComandasView: React.FC = () => {
                   placeholder="Observação personalizada..."
                   value={itemNotes}
                   onChange={(e) => setItemNotes(e.target.value)}
-                  className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white placeholder-neutral-400 focus:outline-none focus:border-[#ff5a1f]"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white placeholder-neutral-400 rounded focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
@@ -709,7 +948,7 @@ export const ComandasView: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddItemModalOpen(false)}
-                  className="w-1/3 py-2.5 border border-[#253257] text-neutral-300 hover:bg-[#1a2342]"
+                  className="w-1/3 py-2.5 border border-[#253257] text-neutral-300 hover:bg-[#1a2342] rounded"
                 >
                   Cancelar
                 </button>
@@ -717,10 +956,10 @@ export const ComandasView: React.FC = () => {
                   type="button"
                   disabled={!selectedProductId}
                   onClick={handleLaunchItem}
-                  className={`w-2/3 py-2.5 text-xs font-bold uppercase tracking-wider transition-colors ${
+                  className={`w-2/3 py-2.5 text-xs font-bold uppercase tracking-wider rounded transition-colors ${
                     selectedProductId
-                      ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-neutral-200 cursor-pointer'
-                      : 'bg-neutral-800 text-neutral-300 cursor-not-allowed'
+                      ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold hover:bg-[#ff723f] cursor-pointer'
+                      : 'bg-navy-950 text-neutral-500 border border-navy-800 cursor-not-allowed'
                   }`}
                 >
                   Confirmar e Lançar na Comanda
@@ -742,6 +981,12 @@ export const ComandasView: React.FC = () => {
           }}
         />
       )}
+
+      {/* Comandas History Modal */}
+      <ComandasHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+      />
     </div>
   );
 };

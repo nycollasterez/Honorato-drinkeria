@@ -3,6 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { Comanda, PaymentMethod, PaymentSplit, EstablishmentReceipt } from '../../types';
 import { CATEGORY_LABELS } from '../../data/initialData';
 import { ReceiptModal } from '../Common/ReceiptModal';
+import { ComandasHistoryModal } from '../Comandas/ComandasHistoryModal';
 import {
   CreditCard,
   QrCode,
@@ -36,6 +37,8 @@ export const CaixaView: React.FC = () => {
     addCashMovement,
     openCashRegister,
     closeCashRegister,
+    clearComandasOnCashClose,
+    setClearComandasOnCashClose,
     products,
     setSelectedComandaId,
     setActiveView,
@@ -44,6 +47,7 @@ export const CaixaView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'comandas' | 'balcao' | 'movimentacoes' | 'vias_arquivo' | 'fechamento'>('comandas');
   const [selectedComandaToPay, setSelectedComandaToPay] = useState<Comanda | null>(null);
   const [openCashAmount, setOpenCashAmount] = useState<string>('0.00');
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
 
   // Payment process state
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
@@ -253,23 +257,34 @@ export const CaixaView: React.FC = () => {
     <div className="min-h-[calc(100vh-64px)] bg-[#0c1122] text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Top Header */}
-        <div className="flex items-center justify-between gap-4 border-b border-[#1f2945] pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#1f2945] pb-4">
           <h1 className="font-editorial text-2xl font-bold text-white">
             Caixa & PDV
           </h1>
 
-          <button
-            onClick={() => setIsMovementModalOpen(true)}
-            className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
-          >
-            <DollarSign className="w-3.5 h-3.5" />
-            <span>Sangria / Suprimento</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsHistoryModalOpen(true)}
+              className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 rounded cursor-pointer transition-colors"
+              title="Consultar histórico geral de comandas"
+            >
+              <Clock className="w-3.5 h-3.5 text-orange-400" />
+              <span>Histórico de Comandas</span>
+            </button>
+
+            <button
+              onClick={() => setIsMovementModalOpen(true)}
+              className="px-3 py-1.5 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center gap-1.5 rounded cursor-pointer transition-colors"
+            >
+              <DollarSign className="w-3.5 h-3.5" />
+              <span>Sangria / Suprimento</span>
+            </button>
+          </div>
         </div>
 
         {/* Financial KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="bg-[#13192f] border border-[#1f2945] p-4 space-y-1">
+          <div className="bg-[#13192f] border border-[#1f2945] p-4 space-y-1 rounded-lg">
             <span className="text-[10px] text-neutral-300 uppercase tracking-wider block">
               Faturado Hoje
             </span>
@@ -277,7 +292,7 @@ export const CaixaView: React.FC = () => {
               {formatPrice(cashRegister.totalRevenue)}
             </span>
             <p className="text-[10px] text-neutral-400">
-              Serviço: {formatPrice(cashRegister.totalServiceCharge)}
+              {cashRegister.totalServiceCharge > 0 ? `Serviço histórico: ${formatPrice(cashRegister.totalServiceCharge)}` : 'Sem taxa de serviço'}
             </p>
           </div>
 
@@ -442,7 +457,7 @@ export const CaixaView: React.FC = () => {
                   {pendingComandas.map((cmd) => {
                     const isSelected = selectedComandaToPay?.id === cmd.id;
                     const sub = cmd.items.reduce((acc, i) => acc + i.unitPrice * i.quantity, 0);
-                    const tot = cmd.includeServiceCharge ? sub * 1.1 : sub;
+                    const tot = cmd.includeServiceCharge ? sub + (sub * cmd.serviceChargePercent) / 100 : sub;
 
                     return (
                       <div
@@ -452,7 +467,7 @@ export const CaixaView: React.FC = () => {
                           setCashAmountReceived('');
                           setIsSplitPayment(false);
                         }}
-                        className={`p-4 border transition-all cursor-pointer flex items-center justify-between ${
+                        className={`p-4 border transition-all cursor-pointer flex items-center justify-between rounded-lg ${
                           isSelected
                             ? 'bg-[#1a2342] border-[#ff5a1f] ring-1 ring-[#ff5a1f]/40'
                             : 'bg-[#13192f] border-[#1f2945] hover:border-[#253257]'
@@ -460,8 +475,8 @@ export const CaixaView: React.FC = () => {
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white">
-                              #{cmd.number.toString().padStart(2, '0')}
+                            <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white rounded">
+                              Comanda {cmd.number}
                             </span>
                             <span className="font-semibold text-sm text-white">{cmd.identifier}</span>
                           </div>
@@ -474,14 +489,14 @@ export const CaixaView: React.FC = () => {
                         </div>
 
                         <div className="text-right">
-                          <span className="text-base font-bold text-white block">
+                          <span className="text-base font-bold text-white block font-mono">
                             {formatPrice(tot)}
                           </span>
                           <span
-                            className={`text-[10px] uppercase font-bold px-2 py-0.5 border ${
+                            className={`text-[10px] uppercase font-bold px-2 py-0.5 border rounded ${
                               cmd.status === 'fechando'
                                 ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f]'
-                                : 'bg-neutral-800 text-neutral-300 border-[#253257]'
+                                : 'bg-[#1a2342] text-neutral-300 border-[#253257]'
                             }`}
                           >
                             {cmd.status === 'fechando' ? 'Pediu a Conta' : 'Aberta'}
@@ -497,7 +512,7 @@ export const CaixaView: React.FC = () => {
             {/* Payment Settlement Pane */}
             <div className="lg:col-span-7">
               {selectedComandaToPay ? (
-                <div className="bg-[#13192f] border border-[#1f2945] p-6 space-y-6">
+                <div className="bg-[#13192f] border border-[#1f2945] p-6 space-y-6 rounded-xl shadow-sm">
                   {/* Header of selected */}
                   <div className="pb-4 border-b border-[#1f2945] flex justify-between items-start">
                     <div>
@@ -505,7 +520,7 @@ export const CaixaView: React.FC = () => {
                         Recebimento de Comanda
                       </span>
                       <h2 className="font-editorial text-2xl font-bold text-white">
-                        Comanda #{selectedComandaToPay.number.toString().padStart(2, '0')} · {selectedComandaToPay.identifier}
+                        Comanda {selectedComandaToPay.number} · {selectedComandaToPay.identifier}
                       </h2>
                       {selectedComandaToPay.customerName && (
                         <p className="text-xs text-neutral-300 mt-0.5">
@@ -516,25 +531,25 @@ export const CaixaView: React.FC = () => {
 
                     <div className="text-right">
                       <span className="text-xs text-neutral-300 block">Total a Pagar</span>
-                      <span className="text-2xl font-bold text-white font-mono">
+                      <span className="text-2xl font-bold text-orange-400 font-mono">
                         {formatPrice(selectedComandaTotal)}
                       </span>
                     </div>
                   </div>
 
                   {/* Items breakdown mini */}
-                  <div className="p-3 bg-[#1a2342] border border-[#1f2945] max-h-36 overflow-y-auto text-xs space-y-1">
+                  <div className="p-3 bg-[#1a2342] border border-[#1f2945] max-h-36 overflow-y-auto text-xs space-y-1 rounded-lg">
                     {selectedComandaToPay.items.map((i) => (
                       <div key={i.id} className="flex justify-between text-neutral-300">
                         <span>{i.quantity}x {i.productName}</span>
                         <span className="font-mono">{formatPrice(i.unitPrice * i.quantity)}</span>
                       </div>
                     ))}
-                    {selectedComandaToPay.includeServiceCharge && (
+                    {selectedComandaToPay.includeServiceCharge && selectedComandaToPay.serviceChargePercent > 0 && (
                       <div className="flex justify-between text-neutral-300 pt-1 border-t border-[#1f2945] text-[11px]">
-                        <span>Serviço (10%):</span>
+                        <span>Serviço histórico ({selectedComandaToPay.serviceChargePercent}%):</span>
                         <span className="font-mono">
-                          {formatPrice((selectedComandaTotal / 1.1) * 0.1)}
+                          {formatPrice((selectedComandaTotal / 1.1) * (selectedComandaToPay.serviceChargePercent / 100))}
                         </span>
                       </div>
                     )}
@@ -1171,6 +1186,51 @@ export const CaixaView: React.FC = () => {
               </p>
             </div>
 
+            {pendingComandas.length > 0 && (
+              <div className="p-4 bg-rose-950/40 border border-rose-800 rounded-lg text-rose-200 text-xs space-y-2">
+                <div className="flex items-center gap-2 font-bold text-rose-300">
+                  <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                  <span>Pendência: Existem {pendingComandas.length} comanda(s) com saldo pendente!</span>
+                </div>
+                <p className="text-[11px]">
+                  O caixa não pode ser encerrado enquanto houver comandas em atendimento. Receba os pagamentos ou cancele as comandas antes de concluir:
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {pendingComandas.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedComandaToPay(c);
+                        setActiveTab('comandas');
+                      }}
+                      className="px-2 py-0.5 bg-rose-900/60 hover:bg-rose-900 border border-rose-700 font-mono text-[10px] rounded cursor-pointer transition-colors"
+                    >
+                      Comanda {c.number} ({c.identifier})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="p-3.5 bg-[#10172e] border border-[#253257] rounded-lg flex items-center justify-between text-xs gap-3">
+              <div className="space-y-0.5">
+                <label htmlFor="toggle-clear-view" className="font-semibold text-white block cursor-pointer">
+                  Limpar visualização das comandas ao fechar o caixa
+                </label>
+                <p className="text-[10px] text-neutral-400">
+                  Ao abrir um novo caixa, a aba principal de comandas inicia limpa. Todos os registros permanecem preservados no Histórico.
+                </p>
+              </div>
+              <input
+                id="toggle-clear-view"
+                type="checkbox"
+                checked={clearComandasOnCashClose}
+                onChange={(e) => setClearComandasOnCashClose(e.target.checked)}
+                className="w-4 h-4 text-orange-500 rounded bg-[#1a2342] border-[#253257] focus:ring-orange-500 cursor-pointer shrink-0"
+              />
+            </div>
+
             <div className="space-y-3 text-xs">
               <div className="flex justify-between py-1.5 border-b border-[#1f2945]">
                 <span className="text-neutral-300">Fundo de Abertura:</span>
@@ -1192,17 +1252,19 @@ export const CaixaView: React.FC = () => {
                 <span className="text-neutral-300">Total Vendas em Dinheiro:</span>
                 <span className="font-mono text-white">{formatPrice(cashRegister.byPaymentMethod.dinheiro)}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-[#1f2945]">
-                <span className="text-neutral-300">Total Taxa de Serviço (10%):</span>
-                <span className="font-mono text-white">{formatPrice(cashRegister.totalServiceCharge)}</span>
-              </div>
+              {cashRegister.totalServiceCharge > 0 && (
+                <div className="flex justify-between py-1.5 border-b border-[#1f2945]">
+                  <span className="text-neutral-300">Taxa de Serviço Histórica (10%):</span>
+                  <span className="font-mono text-white">{formatPrice(cashRegister.totalServiceCharge)}</span>
+                </div>
+              )}
 
               <div className="flex justify-between py-3 border-t-2 border-[#253257] text-sm font-bold text-white">
                 <span>FATURAMENTO TOTAL DO TURNO:</span>
-                <span className="font-mono text-lg">{formatPrice(cashRegister.totalRevenue)}</span>
+                <span className="font-mono text-lg text-orange-400">{formatPrice(cashRegister.totalRevenue)}</span>
               </div>
 
-              <div className="p-3 bg-[#1a2342] border border-[#1f2945] flex justify-between font-bold">
+              <div className="p-3 bg-[#1a2342] border border-[#1f2945] flex justify-between font-bold rounded-lg">
                 <span className="text-neutral-300">Saldo Físico em Espécie na Gaveta:</span>
                 <span className="font-mono text-white">{formatPrice(cashRegister.currentCashBalance)}</span>
               </div>
@@ -1211,7 +1273,7 @@ export const CaixaView: React.FC = () => {
             <div className="pt-4 flex gap-3">
               <button
                 onClick={() => window.print()}
-                className="w-1/2 py-3 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center justify-center gap-2 cursor-pointer"
+                className="w-1/2 py-3 border border-[#253257] bg-[#1a2342] hover:bg-[#202b50] text-xs font-semibold text-white flex items-center justify-center gap-2 rounded cursor-pointer transition-colors"
               >
                 <Printer className="w-4 h-4" />
                 <span>Imprimir Relatório</span>
@@ -1219,12 +1281,27 @@ export const CaixaView: React.FC = () => {
 
               <button
                 onClick={() => {
+                  if (pendingComandas.length > 0) {
+                    alert(
+                      `Não é possível encerrar o caixa: existem ${pendingComandas.length} comanda(s) ainda abertas com saldo pendente. Receba o pagamento ou cancele as comandas antes de fechar.`
+                    );
+                    return;
+                  }
                   if (confirm('Deseja fechar o caixa do turno atual?')) {
-                    closeCashRegister();
-                    alert('Caixa encerrado com sucesso!');
+                    try {
+                      closeCashRegister();
+                      alert('Caixa encerrado com sucesso!');
+                    } catch (err: any) {
+                      alert(err.message || 'Erro ao fechar caixa');
+                    }
                   }
                 }}
-                className="w-1/2 py-3 bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold font-bold uppercase tracking-wider text-xs hover:bg-neutral-200 transition-colors cursor-pointer"
+                disabled={pendingComandas.length > 0}
+                className={`w-1/2 py-3 text-xs font-bold uppercase tracking-wider rounded transition-colors ${
+                  pendingComandas.length > 0
+                    ? 'bg-neutral-800 text-neutral-500 border border-neutral-700 cursor-not-allowed'
+                    : 'bg-[#ff5a1f] hover:bg-[#ff723f] text-white shadow-md shadow-[#ff5a1f]/30 cursor-pointer'
+                }`}
               >
                 Encerrar Turno de Caixa
               </button>
@@ -1340,6 +1417,12 @@ export const CaixaView: React.FC = () => {
           onClose={() => setArchiveReceiptToView(null)}
         />
       )}
+
+      {/* Comandas History Modal */}
+      <ComandasHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+      />
     </div>
   );
 };
