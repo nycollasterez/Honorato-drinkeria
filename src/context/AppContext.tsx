@@ -239,10 +239,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const parsed: Comanda[] = JSON.parse(saved);
         // Requirement 2: "Remova a cobrança automática de 10% das novas comandas e das comandas ainda abertas"
         return parsed.map((c) => {
+          const sanitizedIdent = c.identifier && c.identifier.startsWith('Mesa ') ? `Comanda ${c.number}` : c.identifier;
           if (c.status === 'aberta' || c.status === 'fechando') {
-            return { ...c, includeServiceCharge: false, serviceChargePercent: 0 };
+            return {
+              ...c,
+              identifier: sanitizedIdent,
+              includeServiceCharge: false,
+              serviceChargePercent: 0,
+            };
           }
-          return c;
+          return { ...c, identifier: sanitizedIdent };
         });
       }
     } catch (e) {
@@ -463,17 +469,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
     };
 
-    // 1. Polling Rápido de Comandas (A cada 2.5 segundos para tempo real real no Garçom e Caixa)
+    let consecutiveFastErrors = 0;
+    // 1. Polling Rápido de Comandas (A cada 6s para compatibilidade perfeita com hospedagem compartilhada)
     const syncComandasFast = async () => {
       if (isSyncingComandas || !isMounted) return;
+      if (consecutiveFastErrors >= 3 && Math.random() > 0.3) return; // Backoff inteligente
       isSyncingComandas = true;
       try {
         const remoteComandas = await hostgatorApi.getComandas();
         if (isMounted && remoteComandas && Array.isArray(remoteComandas)) {
+          consecutiveFastErrors = 0;
           mergeComandasData(remoteComandas);
+        } else {
+          consecutiveFastErrors++;
         }
       } catch (e) {
-        // Fallback silencioso
+        consecutiveFastErrors++;
       } finally {
         isSyncingComandas = false;
       }
@@ -519,11 +530,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     syncWithHostgator();
     syncComandasFast();
 
-    // Sincroniza comandas a cada 2.5 segundos (tempo real contínuo sem precisar atualizar a página)
-    const fastInterval = setInterval(syncComandasFast, 2500);
+    // Sincroniza comandas a cada 6 segundos (leve para o servidor e sem travar a aba)
+    const fastInterval = setInterval(syncComandasFast, 6000);
 
-    // Sincronização geral de estoque e caixa a cada 15 segundos
-    const fullInterval = setInterval(syncWithHostgator, 15000);
+    // Sincronização geral de estoque e caixa a cada 25 segundos
+    const fullInterval = setInterval(syncWithHostgator, 25000);
 
     // Quando o usuário volta à aba ou desbloqueia o celular, sincroniza imediatamente
     const handleVisibility = () => {

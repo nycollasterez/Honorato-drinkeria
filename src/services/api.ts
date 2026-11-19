@@ -36,7 +36,7 @@ function getApiBaseUrl(): string {
 async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T | null> {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000); // 6s timeout
+    const timeout = setTimeout(() => controller.abort(), 3500); // 3.5s timeout seguro para compartilhada
 
     const url = `${getApiBaseUrl()}${endpoint}`;
     const res = await fetch(url, {

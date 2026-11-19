@@ -719,7 +719,7 @@ export const ComandasView: React.FC = () => {
               <div className="p-3 bg-navy-950 border border-navy-800 rounded space-y-1">
                 <div className="flex justify-between font-mono font-bold text-white">
                   <span>Comanda {activeComanda.number}</span>
-                  <span>{activeComanda.identifier}</span>
+                  {activeComanda.customerName && <span>{activeComanda.customerName}</span>}
                 </div>
                 {activeComanda.customerName && (
                   <p className="text-neutral-300 text-[11px]">

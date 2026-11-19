@@ -52,46 +52,49 @@ function getDatabaseConnection($suppressExit = false) {
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
+            PDO::ATTR_TIMEOUT => 2,
         ];
         $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
 
-        // Auto-instalação e migração de colunas
-        try {
-            $checkStmt = $pdo->query("SHOW TABLES LIKE 'products'");
-            if ($checkStmt && $checkStmt->rowCount() === 0) {
-                $schemaFile = __DIR__ . '/schema.sql';
-                if (file_exists($schemaFile)) {
-                    $sql = file_get_contents($schemaFile);
-                    $pdo->exec($sql);
-                }
-            } else {
-                // Auto-migração compatível com todas as versões de MySQL/MariaDB
-                $ensureColumn = function($tbl, $col, $def) use ($pdo) {
+        // Auto-instalação e migração de colunas (executa apenas UMA vez para não travar hospedagem compartilhada)
+        $migrationMarker = __DIR__ . '/.migrated_v2';
+        if (!file_exists($migrationMarker)) {
+            try {
+                $checkStmt = $pdo->query("SHOW TABLES LIKE 'products'");
+                if ($checkStmt && $checkStmt->rowCount() === 0) {
+                    $schemaFile = __DIR__ . '/schema.sql';
+                    if (file_exists($schemaFile)) {
+                        $sql = file_get_contents($schemaFile);
+                        $pdo->exec($sql);
+                    }
+                } else {
+                    $ensureColumn = function($tbl, $col, $def) use ($pdo) {
+                        try {
+                            $c = $pdo->query("SHOW COLUMNS FROM `$tbl` LIKE '$col'");
+                            if ($c && $c->rowCount() === 0) {
+                                $pdo->exec("ALTER TABLE `$tbl` ADD `$col` $def");
+                            }
+                        } catch (Exception $ex) {}
+                    };
+
+                    $ensureColumn('products', 'cost_price', 'DECIMAL(10,2) NULL DEFAULT NULL AFTER `price`');
+                    $ensureColumn('products', 'image_focal_point', "VARCHAR(20) NOT NULL DEFAULT 'center' AFTER `cost_price`");
+                    $ensureColumn('comandas', 'cash_register_session_id', 'VARCHAR(64) NULL DEFAULT NULL AFTER `status`');
+                    $ensureColumn('comandas', 'cancellation_reason', 'TEXT NULL DEFAULT NULL AFTER `cash_register_session_id`');
+                    $ensureColumn('comandas', 'cancelled_by', 'VARCHAR(150) NULL DEFAULT NULL AFTER `cancellation_reason`');
+                    $ensureColumn('comandas', 'cancelled_at', 'DATETIME NULL DEFAULT NULL AFTER `cancelled_by`');
+                    $ensureColumn('comanda_items', 'cost_price', 'DECIMAL(10,2) NULL DEFAULT NULL AFTER `unit_price`');
+                    $ensureColumn('cash_register', 'session_id', 'VARCHAR(64) NULL DEFAULT NULL AFTER `id`');
+                    $ensureColumn('daily_closing_reports', 'session_id', 'VARCHAR(64) NULL DEFAULT NULL AFTER `date`');
+
                     try {
-                        $c = $pdo->query("SHOW COLUMNS FROM `$tbl` LIKE '$col'");
-                        if ($c && $c->rowCount() === 0) {
-                            $pdo->exec("ALTER TABLE `$tbl` ADD `$col` $def");
-                        }
+                        $pdo->exec("ALTER TABLE `comandas` MODIFY COLUMN `status` ENUM('aberta', 'fechando', 'paga', 'cancelada') NOT NULL DEFAULT 'aberta'");
                     } catch (Exception $ex) {}
-                };
-
-                $ensureColumn('products', 'cost_price', 'DECIMAL(10,2) NULL DEFAULT NULL AFTER `price`');
-                $ensureColumn('products', 'image_focal_point', "VARCHAR(20) NOT NULL DEFAULT 'center' AFTER `cost_price`");
-                $ensureColumn('comandas', 'cash_register_session_id', 'VARCHAR(64) NULL DEFAULT NULL AFTER `status`');
-                $ensureColumn('comandas', 'cancellation_reason', 'TEXT NULL DEFAULT NULL AFTER `cash_register_session_id`');
-                $ensureColumn('comandas', 'cancelled_by', 'VARCHAR(150) NULL DEFAULT NULL AFTER `cancellation_reason`');
-                $ensureColumn('comandas', 'cancelled_at', 'DATETIME NULL DEFAULT NULL AFTER `cancelled_by`');
-                $ensureColumn('comanda_items', 'cost_price', 'DECIMAL(10,2) NULL DEFAULT NULL AFTER `unit_price`');
-                $ensureColumn('cash_register', 'session_id', 'VARCHAR(64) NULL DEFAULT NULL AFTER `id`');
-                $ensureColumn('daily_closing_reports', 'session_id', 'VARCHAR(64) NULL DEFAULT NULL AFTER `date`');
-
-                // Garante que o status da comanda aceite 'cancelada'
-                try {
-                    $pdo->exec("ALTER TABLE `comandas` MODIFY COLUMN `status` ENUM('aberta', 'fechando', 'paga', 'cancelada') NOT NULL DEFAULT 'aberta'");
-                } catch (Exception $ex) {}
+                }
+                @touch($migrationMarker);
+            } catch (Exception $e) {
+                // Silencioso se schema já estiver pronto
             }
-        } catch (Exception $e) {
-            // Continua normalmente se o schema falhar ou já existir
         }
 
         return $pdo;
