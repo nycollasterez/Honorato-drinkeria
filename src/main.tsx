@@ -2,6 +2,46 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
+// Desregistrar Service Workers antigos para garantir arquivos atualizados
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const r of registrations) {
+      r.unregister();
+    }
+  }).catch(() => {});
+}
+
+// Higienização automática de comandas antigas salvas no navegador
+if (typeof window !== 'undefined') {
+  try {
+    const raw = localStorage.getItem('honorato_comandas');
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        let dirty = false;
+        const cleaned = list.map((c: any) => {
+          let ident = c.identifier;
+          let cust = c.customerName;
+          if (ident && /^mesa(\s*\d+)?$/i.test(ident)) {
+            ident = `Comanda ${c.number}`;
+            dirty = true;
+          }
+          if (cust && /^mesa(\s*\d+)?$/i.test(cust)) {
+            cust = undefined;
+            dirty = true;
+          }
+          return { ...c, identifier: ident, customerName: cust };
+        });
+        if (dirty) {
+          localStorage.setItem('honorato_comandas', JSON.stringify(cleaned));
+        }
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
 // Prevenção de tela branca com tela de recuperação imediata
 if (typeof window !== 'undefined') {
   window.addEventListener('error', (event) => {
