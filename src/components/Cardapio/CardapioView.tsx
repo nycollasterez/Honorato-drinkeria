@@ -25,39 +25,46 @@ export const CardapioView: React.FC = () => {
     // 1. Autorais, 2. Contemporâneos, 3. Clássicos, 4. Sem Álcool, 5. Experiências
     const baseList: { key: string; label: string }[] = [
       { key: 'all', label: 'Todos' },
-      ...MENU_CATEGORIES_ORDER.map((catKey) => ({
-        key: catKey,
-        label: CATEGORY_LABELS[catKey] || catKey,
-      })),
+      ...MENU_CATEGORIES_ORDER.map((item) => {
+        const key = typeof item === 'string' ? item : item.key;
+        const label = typeof item === 'string' ? (CATEGORY_LABELS[item] || item) : item.label;
+        return { key, label };
+      }),
     ];
 
     // Preserved categories if products exist
     const otherKeys: ProductCategory[] = ['doses', 'cervejas', 'vinhos', 'petiscos'];
-    otherKeys.forEach((k) => {
-      if (products.some((p) => p.category === k)) {
-        baseList.push({
-          key: k,
-          label: CATEGORY_LABELS[k] || k,
-        });
-      }
-    });
+    if (Array.isArray(products)) {
+      otherKeys.forEach((k) => {
+        if (products.some((p) => p && p.category === k)) {
+          baseList.push({
+            key: k,
+            label: CATEGORY_LABELS[k] || k,
+          });
+        }
+      });
+    }
 
     return baseList;
   }, [products]);
 
   const filteredProducts = useMemo(() => {
+    if (!Array.isArray(products)) return [];
     return products.filter((item) => {
+      if (!item) return false;
       if (selectedCategory !== 'all' && item.category !== selectedCategory) {
         return false;
       }
       if (searchQuery.trim() !== '') {
         const query = searchQuery.toLowerCase();
-        const matchesName = item.name.toLowerCase().includes(query);
-        const matchesDesc = item.description.toLowerCase().includes(query);
-        const matchesIngredients = item.ingredients?.some((ing) =>
-          ing.toLowerCase().includes(query)
-        );
-        const matchesNotes = item.tastingNotes?.toLowerCase().includes(query);
+        const matchesName = item.name ? item.name.toLowerCase().includes(query) : false;
+        const matchesDesc = item.description ? item.description.toLowerCase().includes(query) : false;
+        const matchesIngredients = Array.isArray(item.ingredients)
+          ? item.ingredients.some((ing) => (typeof ing === 'string' ? ing.toLowerCase().includes(query) : false))
+          : typeof item.ingredients === 'string'
+          ? (item.ingredients as string).toLowerCase().includes(query)
+          : false;
+        const matchesNotes = item.tastingNotes ? item.tastingNotes.toLowerCase().includes(query) : false;
         return matchesName || matchesDesc || matchesIngredients || matchesNotes;
       }
       return true;
@@ -343,13 +350,15 @@ export const CardapioView: React.FC = () => {
               </div>
 
               {/* Ingredients */}
-              {activeModalProduct.ingredients && activeModalProduct.ingredients.length > 0 && (
+              {activeModalProduct.ingredients && (
                 <div className="text-xs space-y-1.5">
                   <span className="text-[10px] uppercase font-semibold text-[#ff5a1f] block tracking-wider">
                     Composição & Ingredientes:
                   </span>
                   <p className="text-neutral-200 leading-relaxed">
-                    {activeModalProduct.ingredients.join(' · ')}
+                    {Array.isArray(activeModalProduct.ingredients)
+                      ? activeModalProduct.ingredients.join(' · ')
+                      : String(activeModalProduct.ingredients)}
                   </p>
                 </div>
               )}

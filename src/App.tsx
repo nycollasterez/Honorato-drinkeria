@@ -40,10 +40,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   handleReset = () => {
     try {
       localStorage.clear();
+      sessionStorage.clear();
     } catch (e) {
       // ignore
     }
-    window.location.href = '/';
+    window.location.reload();
   };
 
   render() {
@@ -57,6 +58,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             <p className="text-xs text-neutral-300">
               Ocorreu um imprevisto na visualização.
             </p>
+            {this.state.error?.message && (
+              <p className="text-[10px] font-mono text-red-400/80 bg-red-950/30 p-2 rounded border border-red-900/40 select-all">
+                {this.state.error.message}
+              </p>
+            )}
             <div className="pt-2 flex flex-col gap-2">
               <button
                 onClick={() => this.setState({ hasError: false })}
