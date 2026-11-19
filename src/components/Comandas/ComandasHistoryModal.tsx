@@ -41,6 +41,13 @@ export const ComandasHistoryModal: React.FC<ComandasHistoryModalProps> = ({
     return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const getCustomerDisplayName = (cmd?: Comanda | null) => {
+    if (!cmd || !cmd.customerName) return null;
+    const name = cmd.customerName.trim();
+    if (!name || /^mesa(\s*\d+)?$/i.test(name)) return null;
+    return name;
+  };
+
   const filteredHistory = useMemo(() => {
     return comandas.filter((c) => {
       // Status filter
@@ -264,9 +271,9 @@ export const ComandasHistoryModal: React.FC<ComandasHistoryModalProps> = ({
                     <span className="font-mono text-base font-bold px-2 py-0.5 border border-[#253257] bg-[#0c1122] text-white rounded inline-block mb-1">
                       Comanda {selectedComanda.number}
                     </span>
-                    {selectedComanda.customerName && (
+                    {getCustomerDisplayName(selectedComanda) && (
                       <h3 className="font-editorial text-xl font-bold text-white">
-                        {selectedComanda.customerName}
+                        {getCustomerDisplayName(selectedComanda)}
                       </h3>
                     )}
                   </div>

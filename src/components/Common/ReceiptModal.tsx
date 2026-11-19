@@ -45,6 +45,15 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   const expirationDate = new Date(closedDate.getTime() + 30 * 24 * 60 * 60 * 1000);
   const authCode = `POM-${Math.abs(comanda.id.split('').reduce((a, b) => (a << 5) - a + b.charCodeAt(0), 0) % 9000 + 1000)}-${closedDate.getFullYear()}`;
 
+  const getCustomerDisplayName = (cmd: Comanda): string | null => {
+    if (!cmd.customerName) return null;
+    const trimmed = cmd.customerName.trim();
+    if (!trimmed || /^mesa(\s*\d+)?$/i.test(trimmed)) return null;
+    return trimmed;
+  };
+
+  const customerDisplayName = getCustomerDisplayName(comanda);
+
   const handlePrint = () => {
     window.print();
   };
@@ -52,7 +61,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   const handleShareSummary = () => {
     const text =
       `POMPÉIA DRINKERIA\n` +
-      `Via do Cliente - Comanda ${comanda.number}${comanda.customerName ? ` (${comanda.customerName})` : ''}\n` +
+      `Via do Cliente - Comanda ${comanda.number}${customerDisplayName ? ` (${customerDisplayName})` : ''}\n` +
       comanda.items
         .map((i) => `${i.quantity}x ${i.productName} - ${formatPrice(i.unitPrice * i.quantity)}`)
         .join('\n') +
@@ -120,7 +129,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
             {activeReceiptType === 'cliente' ? (
               <>
                 <p className="text-[10px] tracking-widest uppercase text-neutral-300 font-bold">
-                  {comanda.status === 'paga' ? '*** VIA DO CLIENTE ***' : 'CONFERÊNCIA DE MESA'}
+                  {comanda.status === 'paga' ? '*** VIA DO CLIENTE ***' : 'CONFERÊNCIA DA COMANDA'}
                 </p>
                 <p className="text-[9px] text-neutral-400 uppercase">
                   Documento não fiscal para conferência
@@ -147,12 +156,12 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           <div className="py-2 border-b border-dashed border-[#253257] text-[11px] space-y-1">
             <div className="flex justify-between font-bold text-white">
               <span>Comanda {comanda.number}</span>
-              {comanda.customerName && <span>{comanda.customerName}</span>}
+              {customerDisplayName && <span>{customerDisplayName}</span>}
             </div>
-            {comanda.customerName && (
+            {customerDisplayName && (
               <div className="flex justify-between text-neutral-300">
                 <span>Cliente:</span>
-                <span>{comanda.customerName}</span>
+                <span>{customerDisplayName}</span>
               </div>
             )}
             <div className="flex justify-between text-neutral-400">

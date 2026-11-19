@@ -70,6 +70,14 @@ export const ComandasView: React.FC = () => {
     return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  // Garante que "Mesa" NUNCA seja exibido como nome de cliente
+  const getCustomerDisplayName = (cmd?: Comanda | null) => {
+    if (!cmd || !cmd.customerName) return null;
+    const name = cmd.customerName.trim();
+    if (!name || /^mesa(\s*\d+)?$/i.test(name)) return null;
+    return name;
+  };
+
   // Active numbers set (currently open or closing comandas)
   const activeNumbers = useMemo(() => {
     return new Set(
@@ -332,9 +340,9 @@ export const ComandasView: React.FC = () => {
                           <span className="font-mono text-xs font-bold px-1.5 py-0.5 border border-[#253257] bg-[#0c1122] text-white rounded">
                             Comanda {cmd.number}
                           </span>
-                          {cmd.customerName && (
+                          {getCustomerDisplayName(cmd) && (
                             <span className="font-semibold text-sm text-white truncate">
-                              {cmd.customerName}
+                              {getCustomerDisplayName(cmd)}
                             </span>
                           )}
                         </div>
@@ -388,9 +396,9 @@ export const ComandasView: React.FC = () => {
                       <span className="font-mono text-base font-bold px-2.5 py-1 border border-[#253257] bg-[#0c1122] text-white rounded">
                         Comanda {activeComanda.number}
                       </span>
-                      {activeComanda.customerName && (
+                      {getCustomerDisplayName(activeComanda) && (
                         <h2 className="font-editorial text-2xl font-bold text-white">
-                          {activeComanda.customerName}
+                          {getCustomerDisplayName(activeComanda)}
                         </h2>
                       )}
                     </div>

@@ -84,6 +84,13 @@ export const CaixaView: React.FC = () => {
     return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
+  const getCustomerDisplayName = (cmd?: Comanda | null) => {
+    if (!cmd || !cmd.customerName) return null;
+    const name = cmd.customerName.trim();
+    if (!name || /^mesa(\s*\d+)?$/i.test(name)) return null;
+    return name;
+  };
+
   // Open & closing comandas ready for checkout
   const pendingComandas = useMemo(() => {
     return comandas.filter((c) => c.status === 'aberta' || c.status === 'fechando');
@@ -478,8 +485,8 @@ export const CaixaView: React.FC = () => {
                             <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white rounded">
                               Comanda {cmd.number}
                             </span>
-                            {cmd.customerName && (
-                              <span className="font-semibold text-sm text-white">{cmd.customerName}</span>
+                            {getCustomerDisplayName(cmd) && (
+                              <span className="font-semibold text-sm text-white">{getCustomerDisplayName(cmd)}</span>
                             )}
                           </div>
                           <p className="text-[10px] text-neutral-300">
@@ -520,7 +527,7 @@ export const CaixaView: React.FC = () => {
                       </span>
                       <h2 className="font-editorial text-2xl font-bold text-white">
                         Comanda {selectedComandaToPay.number}
-                        {selectedComandaToPay.customerName ? ` · ${selectedComandaToPay.customerName}` : ''}
+                        {getCustomerDisplayName(selectedComandaToPay) ? ` · ${getCustomerDisplayName(selectedComandaToPay)}` : ''}
                       </h2>
                     </div>
 

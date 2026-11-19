@@ -447,22 +447,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Helper de unificação e merge inteligente de comandas
     const mergeComandasData = (serverComandas: Comanda[]) => {
       setComandas((prevComandas) => {
+        const sanitizeCmd = (cmd: Comanda): Comanda => {
+          let cName = cmd.customerName?.trim();
+          if (cName && /^mesa(\s*\d+)?$/i.test(cName)) cName = undefined;
+          return {
+            ...cmd,
+            identifier: `Comanda ${cmd.number}`,
+            customerName: cName,
+          };
+        };
+
         const serverIds = new Set(serverComandas.map((c) => c.id));
         // Preserva comandas locais recentes (criadas há menos de 5 min) que ainda estejam em trânsito
         const pendingLocal = prevComandas.filter((lc) => {
           if (serverIds.has(lc.id)) return false;
           const ageMs = Date.now() - new Date(lc.openedAt).getTime();
           return ageMs < 300000;
-        });
+        }).map(sanitizeCmd);
 
         // Se a comanda existir no servidor e localmente, mantém os itens mais recentes
         const mergedServer = serverComandas.map((serverCmd) => {
           const localCmd = prevComandas.find((c) => c.id === serverCmd.id);
-          if (!localCmd) return serverCmd;
-          if (localCmd.items.length > serverCmd.items.length) {
-            return { ...serverCmd, items: localCmd.items };
-          }
-          return serverCmd;
+          const baseCmd = localCmd && localCmd.items.length > serverCmd.items.length
+            ? { ...serverCmd, items: localCmd.items }
+            : serverCmd;
+          return sanitizeCmd(baseCmd);
         });
 
         return [...pendingLocal, ...mergedServer];
@@ -652,11 +661,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     notes?: string
   ): Comanda => {
     let chosenNum: number;
-    let chosenIdent: string;
 
     if (typeof numberOrIdentifier === 'number') {
       chosenNum = Math.min(100, Math.max(1, numberOrIdentifier));
-      chosenIdent = maybeIdentifier?.trim() || `Comanda ${chosenNum}`;
     } else {
       const parsed = parseInt(String(numberOrIdentifier).replace(/\D/g, ''), 10);
       if (!isNaN(parsed) && parsed >= 1 && parsed <= 100) {
@@ -673,7 +680,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           chosenNum++;
         }
       }
-      chosenIdent = String(numberOrIdentifier).trim() || `Comanda ${chosenNum}`;
+    }
+
+    const chosenIdent = `Comanda ${chosenNum}`;
+    let finalCustomerName = customerName?.trim() || undefined;
+    if (finalCustomerName && /^mesa(\s*\d+)?$/i.test(finalCustomerName)) {
+      finalCustomerName = undefined;
     }
 
     // Validação estrita: impedir duas comandas ativas com o mesmo número
@@ -690,7 +702,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       id: `cmd-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       number: chosenNum,
       identifier: chosenIdent,
-      customerName: customerName?.trim() || undefined,
+      customerName: finalCustomerName,
       status: 'aberta',
       cashRegisterSessionId: currentSessId,
       items: [],
