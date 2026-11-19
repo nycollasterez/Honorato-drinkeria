@@ -53,7 +53,6 @@ export const ComandasView: React.FC = () => {
 
   // New comanda form state (1 to 100 selector)
   const [selectedNumber, setSelectedNumber] = useState<number>(1);
-  const [newIdentifier, setNewIdentifier] = useState<string>('');
   const [newCustomerName, setNewCustomerName] = useState<string>('');
   const [newNotes, setNewNotes] = useState<string>('');
 
@@ -162,7 +161,7 @@ export const ComandasView: React.FC = () => {
       return;
     }
 
-    const identifier = newIdentifier.trim() || `Mesa ${selectedNumber}`;
+    const identifier = newCustomerName.trim() || `Comanda ${selectedNumber}`;
     try {
       const created = openComanda(
         selectedNumber,
@@ -170,7 +169,6 @@ export const ComandasView: React.FC = () => {
         newCustomerName.trim() || undefined,
         newNotes.trim() || undefined
       );
-      setNewIdentifier('');
       setNewCustomerName('');
       setNewNotes('');
       setIsNewComandaModalOpen(false);
@@ -248,7 +246,6 @@ export const ComandasView: React.FC = () => {
             <button
               onClick={() => {
                 setSelectedNumber(firstAvailableNumber);
-                setNewIdentifier(`Mesa ${firstAvailableNumber}`);
                 setIsNewComandaModalOpen(true);
               }}
               className="px-3.5 py-2 bg-[#ff5a1f] hover:bg-[#ff723f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 rounded cursor-pointer transition-colors"
@@ -335,16 +332,12 @@ export const ComandasView: React.FC = () => {
                           <span className="font-mono text-xs font-bold px-1.5 py-0.5 border border-[#253257] bg-[#0c1122] text-white rounded">
                             Comanda {cmd.number}
                           </span>
-                          <span className="font-semibold text-sm text-white truncate">
-                            {cmd.identifier}
-                          </span>
+                          {cmd.customerName && (
+                            <span className="font-semibold text-sm text-white truncate">
+                              {cmd.customerName}
+                            </span>
+                          )}
                         </div>
-
-                        {cmd.customerName && (
-                          <p className="text-xs text-neutral-300 truncate">
-                            Cliente: {cmd.customerName}
-                          </p>
-                        )}
 
                         <div className="flex items-center gap-2 text-[11px] text-neutral-300">
                           <span>{cmd.items.length} itens</span>
@@ -395,16 +388,12 @@ export const ComandasView: React.FC = () => {
                       <span className="font-mono text-base font-bold px-2.5 py-1 border border-[#253257] bg-[#0c1122] text-white rounded">
                         Comanda {activeComanda.number}
                       </span>
-                      <h2 className="font-editorial text-2xl font-bold text-white">
-                        {activeComanda.identifier}
-                      </h2>
+                      {activeComanda.customerName && (
+                        <h2 className="font-editorial text-2xl font-bold text-white">
+                          {activeComanda.customerName}
+                        </h2>
+                      )}
                     </div>
-
-                    {activeComanda.customerName && (
-                      <p className="text-xs text-neutral-300 mt-1">
-                        Cliente / Responsável: <strong className="text-white">{activeComanda.customerName}</strong>
-                      </p>
-                    )}
 
                     {activeComanda.notes && (
                       <p className="text-xs text-neutral-300 italic mt-0.5">
@@ -648,13 +637,7 @@ export const ComandasView: React.FC = () => {
                 <select
                   required
                   value={selectedNumber}
-                  onChange={(e) => {
-                    const num = parseInt(e.target.value, 10);
-                    setSelectedNumber(num);
-                    if (!newIdentifier || newIdentifier.startsWith('Mesa ')) {
-                      setNewIdentifier(`Mesa ${num}`);
-                    }
-                  }}
+                  onChange={(e) => setSelectedNumber(parseInt(e.target.value, 10))}
                   className="w-full bg-[#1a2342] border border-[#253257] p-2.5 rounded text-white text-xs font-mono font-bold focus:outline-none focus:border-[#ff5a1f]"
                 >
                   {Array.from({ length: 100 }, (_, i) => i + 1).map((n) => {
@@ -666,19 +649,6 @@ export const ComandasView: React.FC = () => {
                     );
                   })}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-neutral-300 font-semibold mb-1">
-                  Mesa ou Identificador Local (Opcional)
-                </label>
-                <input
-                  type="text"
-                  placeholder={`Mesa ${selectedNumber}`}
-                  value={newIdentifier}
-                  onChange={(e) => setNewIdentifier(e.target.value)}
-                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 rounded text-white focus:outline-none focus:border-[#ff5a1f]"
-                />
               </div>
 
               <div>
@@ -808,7 +778,7 @@ export const ComandasView: React.FC = () => {
               <div>
                 <h3 className="font-editorial text-xl font-bold">Lançar Item no Pedido</h3>
                 <p className="text-xs text-neutral-300">
-                  Comanda {activeComanda.number} · {activeComanda.identifier}
+                  Comanda {activeComanda.number}{activeComanda.customerName ? ` · ${activeComanda.customerName}` : ''}
                 </p>
               </div>
               <button

@@ -208,16 +208,12 @@ export const ComandasHistoryModal: React.FC<ComandasHistoryModalProps> = ({
                           <span className="font-mono font-bold text-white bg-navy-950 border border-navy-700 px-1.5 py-0.5 rounded text-[11px]">
                             Comanda {cmd.number}
                           </span>
-                          <span className="font-semibold text-white truncate">
-                            {cmd.identifier}
-                          </span>
+                          {cmd.customerName && (
+                            <span className="font-semibold text-white truncate">
+                              {cmd.customerName}
+                            </span>
+                          )}
                         </div>
-
-                        {cmd.customerName && (
-                          <p className="text-[11px] text-neutral-300 truncate">
-                            Cliente: {cmd.customerName}
-                          </p>
-                        )}
 
                         <div className="flex items-center gap-2 text-[10px] text-neutral-400">
                           <span>{new Date(cmd.openedAt).toLocaleDateString('pt-BR')} às {new Date(cmd.openedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -265,16 +261,13 @@ export const ComandasHistoryModal: React.FC<ComandasHistoryModalProps> = ({
                 {/* Detail Header */}
                 <div className="border-b border-[#1f2945] pb-3 flex justify-between items-start">
                   <div>
-                    <span className="text-[10px] uppercase text-neutral-400 block font-mono">
+                    <span className="font-mono text-base font-bold px-2 py-0.5 border border-[#253257] bg-[#0c1122] text-white rounded inline-block mb-1">
                       Comanda {selectedComanda.number}
                     </span>
-                    <h3 className="font-editorial text-xl font-bold text-white">
-                      {selectedComanda.identifier}
-                    </h3>
                     {selectedComanda.customerName && (
-                      <p className="text-neutral-300 text-[11px] mt-0.5">
-                        Cliente: <strong className="text-white">{selectedComanda.customerName}</strong>
-                      </p>
+                      <h3 className="font-editorial text-xl font-bold text-white">
+                        {selectedComanda.customerName}
+                      </h3>
                     )}
                   </div>
 

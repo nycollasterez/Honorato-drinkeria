@@ -52,7 +52,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
   const handleShareSummary = () => {
     const text =
       `POMPÉIA DRINKERIA\n` +
-      `Via do Cliente - Comanda ${comanda.number} (${comanda.identifier})\n` +
+      `Via do Cliente - Comanda ${comanda.number}${comanda.customerName ? ` (${comanda.customerName})` : ''}\n` +
       comanda.items
         .map((i) => `${i.quantity}x ${i.productName} - ${formatPrice(i.unitPrice * i.quantity)}`)
         .join('\n') +
@@ -147,7 +147,7 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
           <div className="py-2 border-b border-dashed border-[#253257] text-[11px] space-y-1">
             <div className="flex justify-between font-bold text-white">
               <span>Comanda {comanda.number}</span>
-              <span>{comanda.identifier}</span>
+              {comanda.customerName && <span>{comanda.customerName}</span>}
             </div>
             {comanda.customerName && (
               <div className="flex justify-between text-neutral-300">

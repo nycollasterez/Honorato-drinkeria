@@ -478,11 +478,10 @@ export const CaixaView: React.FC = () => {
                             <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white rounded">
                               Comanda {cmd.number}
                             </span>
-                            <span className="font-semibold text-sm text-white">{cmd.identifier}</span>
+                            {cmd.customerName && (
+                              <span className="font-semibold text-sm text-white">{cmd.customerName}</span>
+                            )}
                           </div>
-                          {cmd.customerName && (
-                            <p className="text-xs text-neutral-300">{cmd.customerName}</p>
-                          )}
                           <p className="text-[10px] text-neutral-300">
                             {cmd.items.length} itens consumidos
                           </p>
@@ -520,13 +519,9 @@ export const CaixaView: React.FC = () => {
                         Recebimento de Comanda
                       </span>
                       <h2 className="font-editorial text-2xl font-bold text-white">
-                        Comanda {selectedComandaToPay.number} · {selectedComandaToPay.identifier}
+                        Comanda {selectedComandaToPay.number}
+                        {selectedComandaToPay.customerName ? ` · ${selectedComandaToPay.customerName}` : ''}
                       </h2>
-                      {selectedComandaToPay.customerName && (
-                        <p className="text-xs text-neutral-300 mt-0.5">
-                          Cliente: {selectedComandaToPay.customerName}
-                        </p>
-                      )}
                     </div>
 
                     <div className="text-right">
@@ -1206,7 +1201,7 @@ export const CaixaView: React.FC = () => {
                       }}
                       className="px-2 py-0.5 bg-rose-900/60 hover:bg-rose-900 border border-rose-700 font-mono text-[10px] rounded cursor-pointer transition-colors"
                     >
-                      Comanda {c.number} ({c.identifier})
+                      Comanda {c.number}{c.customerName ? ` (${c.customerName})` : ''}
                     </button>
                   ))}
                 </div>
