@@ -3,5 +3,10 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/$USER/public_html/drinkeria/
     - /bin/mkdir -p $DEPLOYPATH
-    - /bin/cp -R honorato_hostgator/* $DEPLOYPATH
-    - /bin/cp honorato_hostgator/.htaccess $DEPLOYPATH
+    - /bin/cp -R assets/ $DEPLOYPATH 2>/dev/null || :
+    - /bin/cp -R api/ $DEPLOYPATH 2>/dev/null || :
+    - /bin/cp index.html $DEPLOYPATH 2>/dev/null || :
+    - /bin/cp .htaccess $DEPLOYPATH 2>/dev/null || :
+    - /bin/cp logo.jpg $DEPLOYPATH 2>/dev/null || :
+    - /bin/cp favicon.* $DEPLOYPATH 2>/dev/null || :
+    - /bin/cp -R honorato_hostgator/* $DEPLOYPATH 2>/dev/null || :
