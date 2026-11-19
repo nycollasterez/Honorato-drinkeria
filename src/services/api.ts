@@ -30,13 +30,21 @@ function getApiBaseUrl(): string {
   return base.startsWith('/') ? base : '/' + base;
 }
 
+let isApiOffline = false;
+let offlineUntil = 0;
+
 /**
- * Helper para requisições seguras com timeout
+ * Helper para requisições seguras com timeout e circuit-breaker contra carregamento infinito
  */
 async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T | null> {
+  // Se a API estiver offline ou sem banco configurado, pausa as chamadas para a aba não ficar girando
+  if (isApiOffline && Date.now() < offlineUntil) {
+    return null;
+  }
+
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3500); // 3.5s timeout seguro para compartilhada
+    const timeout = setTimeout(() => controller.abort(), 2500); // 2.5s timeout estrito
 
     const url = `${getApiBaseUrl()}${endpoint}`;
     const res = await fetch(url, {
@@ -52,18 +60,36 @@ async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise
     clearTimeout(timeout);
 
     if (!res.ok) {
+      // Se deu erro HTTP (ex: 500 Banco Offline), silencia chamadas por 10 minutos
+      isApiOffline = true;
+      offlineUntil = Date.now() + 600000;
       return null;
     }
 
     const json = await res.json();
-    return json.success ? (json.data as T) : null;
+    if (!json || !json.success) {
+      if (json && json.offline) {
+        isApiOffline = true;
+        offlineUntil = Date.now() + 600000;
+      }
+      return null;
+    }
+
+    // Se respondeu com sucesso, garante que o circuit-breaker está limpo
+    isApiOffline = false;
+    return json.data as T;
   } catch (e) {
-    // Falha silenciosa para fallback em localStorage
+    // Falha silenciosa: silencia chamadas para a aba do navegador parar de girar
+    isApiOffline = true;
+    offlineUntil = Date.now() + 120000; // 2 min de silêncio
     return null;
   }
 }
 
 export const hostgatorApi = {
+  isOffline(): boolean {
+    return isApiOffline && Date.now() < offlineUntil;
+  },
   /**
    * Sincroniza todos os módulos com o MySQL da HostGator
    */

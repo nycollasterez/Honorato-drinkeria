@@ -469,22 +469,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
     };
 
-    let consecutiveFastErrors = 0;
-    // 1. Polling Rápido de Comandas (A cada 6s para compatibilidade perfeita com hospedagem compartilhada)
+    // 1. Polling Rápido de Comandas (Silenciado se a API estiver offline para a aba parar de girar)
     const syncComandasFast = async () => {
-      if (isSyncingComandas || !isMounted) return;
-      if (consecutiveFastErrors >= 3 && Math.random() > 0.3) return; // Backoff inteligente
+      if (isSyncingComandas || !isMounted || hostgatorApi.isOffline()) return;
       isSyncingComandas = true;
       try {
         const remoteComandas = await hostgatorApi.getComandas();
         if (isMounted && remoteComandas && Array.isArray(remoteComandas)) {
-          consecutiveFastErrors = 0;
           mergeComandasData(remoteComandas);
-        } else {
-          consecutiveFastErrors++;
         }
       } catch (e) {
-        consecutiveFastErrors++;
+        // Fallback silencioso
       } finally {
         isSyncingComandas = false;
       }
@@ -492,7 +487,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     // 2. Sincronização Completa (Produtos, Garrafas, Caixa e PINs)
     const syncWithHostgator = async () => {
-      if (isFullSyncing || !isMounted) return;
+      if (isFullSyncing || !isMounted || hostgatorApi.isOffline()) return;
       isFullSyncing = true;
       try {
         const data = await hostgatorApi.syncAll();

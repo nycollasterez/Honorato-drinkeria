@@ -102,12 +102,13 @@ function getDatabaseConnection($suppressExit = false) {
         if ($suppressExit) {
             throw $e;
         }
-        http_response_code(500);
+        http_response_code(200);
         echo json_encode([
             'success' => false,
-            'error' => 'Falha na conexão com o banco MySQL HostGator: ' . $e->getMessage(),
-            'hint' => 'Verifique se o banco e usuário foram criados no cPanel e se os dados em api/config.php estão corretos.'
-        ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+            'offline' => true,
+            'error' => 'MySQL offline no cPanel: ' . $e->getMessage(),
+            'hint' => 'O sistema segue operando normalmente em modo offline/localStorage.'
+        ], JSON_UNESCAPED_UNICODE);
         exit();
     }
 }
