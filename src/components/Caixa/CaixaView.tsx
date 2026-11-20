@@ -1101,12 +1101,14 @@ export const CaixaView: React.FC = () => {
                           <div className="flex items-center gap-2">
                             {rec.comandaNumber > 0 ? (
                               <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white">
-                                #{rec.comandaNumber.toString().padStart(2, '0')}
+                                Comanda {rec.comandaNumber}
                               </span>
                             ) : null}
-                            <span className="font-bold text-sm text-white">{rec.identifier}</span>
+                            {rec.identifier && !rec.identifier.toLowerCase().startsWith('mesa') && (
+                              <span className="font-bold text-sm text-white">{rec.identifier}</span>
+                            )}
                           </div>
-                          {rec.customerName && (
+                          {rec.customerName && !rec.customerName.toLowerCase().startsWith('mesa') && (
                             <p className="text-xs text-neutral-300 mt-0.5">Cliente: {rec.customerName}</p>
                           )}
                           <p className="text-[11px] text-neutral-400 font-mono mt-0.5">

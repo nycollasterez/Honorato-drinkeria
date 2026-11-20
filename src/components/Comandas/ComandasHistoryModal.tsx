@@ -215,9 +215,9 @@ export const ComandasHistoryModal: React.FC<ComandasHistoryModalProps> = ({
                           <span className="font-mono font-bold text-white bg-navy-950 border border-navy-700 px-1.5 py-0.5 rounded text-[11px]">
                             Comanda {cmd.number}
                           </span>
-                          {cmd.customerName && (
+                          {getCustomerDisplayName(cmd) && (
                             <span className="font-semibold text-white truncate">
-                              {cmd.customerName}
+                              {getCustomerDisplayName(cmd)}
                             </span>
                           )}
                         </div>
