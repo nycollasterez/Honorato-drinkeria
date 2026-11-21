@@ -8,5 +8,8 @@ deployment:
     - /bin/cp index.html $DEPLOYPATH 2>/dev/null || :
     - /bin/cp .htaccess $DEPLOYPATH 2>/dev/null || :
     - /bin/cp logo.jpg $DEPLOYPATH 2>/dev/null || :
+    - /bin/cp logo.png $DEPLOYPATH 2>/dev/null || :
     - /bin/cp favicon.* $DEPLOYPATH 2>/dev/null || :
+    - /bin/cp apple-touch-icon.png $DEPLOYPATH 2>/dev/null || :
+    - /bin/cp manifest.json $DEPLOYPATH 2>/dev/null || :
     - /bin/cp -R honorato_hostgator/* $DEPLOYPATH 2>/dev/null || :
