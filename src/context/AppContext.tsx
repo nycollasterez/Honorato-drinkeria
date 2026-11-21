@@ -530,15 +530,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     };
 
-    // Executa a primeira carga completa de imediato
-    syncWithHostgator();
-    syncComandasFast();
+    // Inicia a sincronização apenas APÓS o carregamento visual da página
+    // Isso evita o ícone de carregamento contínuo (spinner) na aba do navegador
+    let initialTimer: any;
+    let fastInterval: any;
+    let fullInterval: any;
 
-    // Sincroniza comandas a cada 6 segundos (leve para o servidor e sem travar a aba)
-    const fastInterval = setInterval(syncComandasFast, 6000);
+    const startSyncTimers = () => {
+      if (!isMounted) return;
+      syncComandasFast();
+      syncWithHostgator();
 
-    // Sincronização geral de estoque e caixa a cada 25 segundos
-    const fullInterval = setInterval(syncWithHostgator, 25000);
+      // Intervalos calmos para não sobrecarregar a hospedagem compartilhada
+      fastInterval = setInterval(() => {
+        if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+          syncComandasFast();
+        }
+      }, 10000);
+
+      fullInterval = setInterval(() => {
+        if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+          syncWithHostgator();
+        }
+      }, 30000);
+    };
+
+    if (typeof document !== 'undefined' && document.readyState === 'complete') {
+      initialTimer = setTimeout(startSyncTimers, 1200);
+    } else if (typeof window !== 'undefined') {
+      window.addEventListener('load', () => {
+        initialTimer = setTimeout(startSyncTimers, 1200);
+      }, { once: true });
+    }
 
     // Quando o usuário volta à aba ou desbloqueia o celular, sincroniza imediatamente
     const handleVisibility = () => {
@@ -559,8 +582,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return () => {
       isMounted = false;
-      clearInterval(fastInterval);
-      clearInterval(fullInterval);
+      if (initialTimer) clearTimeout(initialTimer);
+      if (fastInterval) clearInterval(fastInterval);
+      if (fullInterval) clearInterval(fullInterval);
       window.removeEventListener('focus', handleVisibility);
       document.removeEventListener('visibilitychange', handleVisibility);
       if (realtimeChannel) {
