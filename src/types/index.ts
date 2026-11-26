@@ -92,6 +92,7 @@ export interface Transaction {
   id: string;
   comandaId?: string;
   comandaNumber?: number;
+  customerName?: string;
   type: 'comanda_fechada' | 'venda_balcao' | 'suprimento' | 'sangria';
   description: string;
   amount: number;

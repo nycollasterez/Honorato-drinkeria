@@ -239,16 +239,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const parsed: Comanda[] = JSON.parse(saved);
         // Requirement 2: "Remova a cobrança automática de 10% das novas comandas e das comandas ainda abertas"
         return parsed.map((c) => {
-          const sanitizedIdent = c.identifier && c.identifier.startsWith('Mesa ') ? `Comanda ${c.number}` : c.identifier;
+          let cName = c.customerName?.trim();
+          if (cName && /^mesa(\s*\d+)?$/i.test(cName)) cName = undefined;
+          const sanitizedIdent = `Comanda ${c.number}`;
           if (c.status === 'aberta' || c.status === 'fechando') {
             return {
               ...c,
               identifier: sanitizedIdent,
+              customerName: cName,
               includeServiceCharge: false,
               serviceChargePercent: 0,
             };
           }
-          return { ...c, identifier: sanitizedIdent };
+          return { ...c, identifier: sanitizedIdent, customerName: cName };
         });
       }
     } catch (e) {
@@ -261,7 +264,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: Transaction[] = JSON.parse(saved);
+        return parsed.map((tx) => {
+          let cName = tx.customerName?.trim();
+          if (cName && /^mesa(\s*\d+)?$/i.test(cName)) cName = undefined;
+          let desc = tx.description;
+          if (tx.type === 'comanda_fechada' && tx.comandaNumber) {
+            desc = cName ? `Comanda ${tx.comandaNumber} · Cliente: ${cName}` : `Comanda ${tx.comandaNumber}`;
+          } else {
+            desc = desc.replace(/\s*\(\s*mesa\s*\d*\s*\)/gi, '').replace(/\s*\(\s*comanda\s*\d*\s*\)/gi, '');
+          }
+          return {
+            ...tx,
+            customerName: cName,
+            description: desc,
+          };
+        });
+      }
     } catch (e) {
       console.error('Failed reading transactions', e);
     }
@@ -514,10 +534,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (data.comandas) mergeComandasData(data.comandas);
 
         if (data.transactions && data.transactions.length > 0) {
+          const sanitizedServerTx = data.transactions.map((tx: Transaction) => {
+            let cName = tx.customerName?.trim();
+            if (cName && /^mesa(\s*\d+)?$/i.test(cName)) cName = undefined;
+            let desc = tx.description;
+            if (tx.type === 'comanda_fechada' && tx.comandaNumber) {
+              desc = cName ? `Comanda ${tx.comandaNumber} · Cliente: ${cName}` : `Comanda ${tx.comandaNumber}`;
+            } else {
+              desc = desc.replace(/\s*\(\s*mesa\s*\d*\s*\)/gi, '').replace(/\s*\(\s*comanda\s*\d*\s*\)/gi, '');
+            }
+            return {
+              ...tx,
+              customerName: cName,
+              description: desc,
+            };
+          });
           setTransactions((prevTx) => {
-            const serverTxIds = new Set(data.transactions.map((t) => t.id));
+            const serverTxIds = new Set(sanitizedServerTx.map((t) => t.id));
             const localOnly = prevTx.filter((t) => !serverTxIds.has(t.id));
-            return [...localOnly, ...data.transactions];
+            return [...localOnly, ...sanitizedServerTx];
           });
         }
         if (data.cashRegister && (data.cashRegister.isOpen || data.cashRegister.totalRevenue > 0)) {
@@ -959,12 +994,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const expiresIso = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     const authCode = `POM-${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
+    const customerName = comanda.customerName?.trim() && !/^mesa(\s*\d+)?$/i.test(comanda.customerName.trim())
+      ? comanda.customerName.trim()
+      : undefined;
+
     const newTx: Transaction = {
       id: `tx-${Date.now()}`,
       comandaId: comanda.id,
       comandaNumber: comanda.number,
+      customerName,
       type: 'comanda_fechada',
-      description: `Comanda ${comanda.number} (${comanda.identifier})`,
+      description: customerName ? `Comanda ${comanda.number} · Cliente: ${customerName}` : `Comanda ${comanda.number}`,
       amount: totalAmount,
       serviceChargeAmount: serviceCharge,
       paymentMethod,
@@ -985,8 +1025,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       transactionId: newTx.id,
       comandaId: comanda.id,
       comandaNumber: comanda.number,
-      identifier: comanda.identifier,
-      customerName: comanda.customerName,
+      identifier: `Comanda ${comanda.number}`,
+      customerName,
       createdAt: nowIso,
       expiresAt: expiresIso,
       items: comanda.items.map((i) => ({

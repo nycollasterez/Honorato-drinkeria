@@ -31,11 +31,12 @@ if ($method === 'GET') {
     }
 
     $result = array_map(function($c) use ($itemsByComanda) {
+        $cName = !empty($c['customer_name']) && !preg_match('/^mesa(\s*\d+)?$/i', trim($c['customer_name'])) ? trim($c['customer_name']) : '';
         return [
             'id' => $c['id'],
             'number' => (int)$c['number'],
-            'identifier' => $c['identifier'],
-            'customerName' => $c['customer_name'] ?? '',
+            'identifier' => 'Comanda ' . (int)$c['number'],
+            'customerName' => $cName,
             'status' => $c['status'],
             'openedAt' => $c['opened_at'],
             'closedAt' => $c['closed_at'],
@@ -58,10 +59,11 @@ if ($method === 'POST') {
     // 1. Abrir Nova Comanda
     if ($action === 'open') {
         $id = !empty($data['id']) ? trim($data['id']) : ('cmd-' . round(microtime(true) * 1000));
-        $identifier = is_string($data['identifier'] ?? null)
-            ? trim($data['identifier'])
-            : (is_array($data['identifier'] ?? null) ? trim($data['identifier']['identifier'] ?? 'Balcão') : 'Balcão');
         $customerName = is_string($data['customerName'] ?? null) ? trim($data['customerName']) : '';
+        if (preg_match('/^mesa(\s*\d+)?$/i', $customerName)) {
+            $customerName = '';
+        }
+        $identifier = !empty($data['number']) ? ('Comanda ' . (int)$data['number']) : 'Comanda';
         $notes = is_string($data['notes'] ?? null) ? trim($data['notes']) : '';
 
         // Se o frontend já enviou o número da comanda, usa ele, senão calcula o próximo
@@ -234,7 +236,8 @@ if ($method === 'POST') {
         $txId = 'tx-cmd-' . round(microtime(true) * 1000);
         $tStmt = $pdo->prepare("INSERT INTO transactions (id, comanda_id, comanda_number, type, description, amount, service_charge_amount, payment_method, payment_splits_json, amount_received, change_given, items_summary_json, timestamp)
             VALUES (?, ?, ?, 'comanda_fechada', ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $desc = "Fechamento Comanda #{$comanda['number']} - {$comanda['identifier']}";
+        $cName = !empty($comanda['customer_name']) && !preg_match('/^mesa(\s*\d+)?$/i', trim($comanda['customer_name'])) ? trim($comanda['customer_name']) : null;
+        $desc = $cName ? "Comanda {$comanda['number']} · Cliente: {$cName}" : "Comanda {$comanda['number']}";
         $tStmt->execute([
             $txId, $comandaId, $comanda['number'], $desc, $totalToPay, $serviceCharge,
             $paymentMethod, $splitsJson, $amountReceived, $changeGiven,

@@ -381,7 +381,7 @@ export const ComandasView: React.FC = () => {
                           </span>
                           {getCustomerDisplayName(cmd) && (
                             <span className="font-semibold text-sm text-white truncate">
-                              {getCustomerDisplayName(cmd)}
+                              Cliente: <span className="text-[#ff723f]">{getCustomerDisplayName(cmd)}</span>
                             </span>
                           )}
                         </div>
@@ -459,8 +459,8 @@ export const ComandasView: React.FC = () => {
                         Comanda {activeComanda.number}
                       </span>
                       {getCustomerDisplayName(activeComanda) && (
-                        <h2 className="font-editorial text-2xl font-bold text-white">
-                          {getCustomerDisplayName(activeComanda)}
+                        <h2 className="text-xl font-bold text-white">
+                          Cliente: <span className="text-[#ff723f]">{getCustomerDisplayName(activeComanda)}</span>
                         </h2>
                       )}
                     </div>

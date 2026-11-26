@@ -154,22 +154,20 @@ export const ReceiptModal: React.FC<ReceiptModalProps> = ({
 
           {/* Comanda Info */}
           <div className="py-2 border-b border-dashed border-[#253257] text-[11px] space-y-1">
-            <div className="flex justify-between font-bold text-white">
-              <span>Comanda {comanda.number}</span>
-              {customerDisplayName && <span>{customerDisplayName}</span>}
-            </div>
-            {customerDisplayName && (
-              <div className="flex justify-between text-neutral-300">
-                <span>Cliente:</span>
-                <span>{customerDisplayName}</span>
-              </div>
-            )}
-            <div className="flex justify-between text-neutral-400">
-              <span>Situação:</span>
-              <span className={`uppercase font-bold ${comanda.status === 'paga' ? 'text-white' : 'text-neutral-300'}`}>
+            <div className="flex justify-between items-center font-bold text-white">
+              <span className="font-mono text-xs bg-[#0c1122] border border-[#253257] px-1.5 py-0.5 rounded">
+                Comanda {comanda.number}
+              </span>
+              <span className={`uppercase font-bold text-[10px] ${comanda.status === 'paga' ? 'text-emerald-400' : 'text-orange-400'}`}>
                 {comanda.status === 'paga' ? 'CONTA FECHADA / PAGA' : 'EM ABERTO'}
               </span>
             </div>
+            {customerDisplayName ? (
+              <div className="flex justify-between text-neutral-300">
+                <span>Cliente:</span>
+                <span className="font-bold text-white">{customerDisplayName}</span>
+              </div>
+            ) : null}
 
             {/* Establishment exclusive metadata */}
             {activeReceiptType === 'estabelecimento' && (

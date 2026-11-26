@@ -63,11 +63,12 @@ if ($method === 'GET') {
         ];
     }
     $comandas = array_map(function($c) use ($itemsByComanda) {
+        $cName = !empty($c['customer_name']) && !preg_match('/^mesa(\s*\d+)?$/i', trim($c['customer_name'])) ? trim($c['customer_name']) : '';
         return [
             'id' => $c['id'],
             'number' => (int)$c['number'],
-            'identifier' => $c['identifier'],
-            'customerName' => $c['customer_name'] ?? '',
+            'identifier' => 'Comanda ' . (int)$c['number'],
+            'customerName' => $cName,
             'status' => $c['status'],
             'openedAt' => $c['opened_at'],
             'closedAt' => $c['closed_at'],
@@ -81,14 +82,23 @@ if ($method === 'GET') {
     }, $cRows);
 
     // 4. Transações
-    $tRows = $pdo->query("SELECT * FROM transactions ORDER BY timestamp DESC LIMIT 100")->fetchAll();
+    $tRows = $pdo->query("SELECT t.*, c.customer_name FROM transactions t LEFT JOIN comandas c ON t.comanda_id = c.id ORDER BY t.timestamp DESC LIMIT 100")->fetchAll();
     $transactions = array_map(function($t) {
+        $cName = !empty($t['customer_name']) && !preg_match('/^mesa(\s*\d+)?$/i', trim($t['customer_name'])) ? trim($t['customer_name']) : null;
+        $desc = $t['description'];
+        if ($t['type'] === 'comanda_fechada' && $t['comanda_number']) {
+            $desc = $cName ? "Comanda {$t['comanda_number']} · Cliente: {$cName}" : "Comanda {$t['comanda_number']}";
+        } else {
+            $desc = preg_replace('/\s*\(\s*mesa\s*\d*\s*\)/i', '', $desc);
+            $desc = preg_replace('/\s*\(\s*comanda\s*\d*\s*\)/i', '', $desc);
+        }
         return [
             'id' => $t['id'],
             'comandaId' => $t['comanda_id'],
             'comandaNumber' => $t['comanda_number'] ? (int)$t['comanda_number'] : null,
+            'customerName' => $cName,
             'type' => $t['type'],
-            'description' => $t['description'],
+            'description' => $desc,
             'amount' => (float)$t['amount'],
             'serviceChargeAmount' => (float)$t['service_charge_amount'],
             'paymentMethod' => $t['payment_method'],

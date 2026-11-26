@@ -215,11 +215,11 @@ export const ComandasHistoryModal: React.FC<ComandasHistoryModalProps> = ({
                           <span className="font-mono font-bold text-white bg-navy-950 border border-navy-700 px-1.5 py-0.5 rounded text-[11px]">
                             Comanda {cmd.number}
                           </span>
-                          {getCustomerDisplayName(cmd) && (
-                            <span className="font-semibold text-white truncate">
-                              {getCustomerDisplayName(cmd)}
+                          {getCustomerDisplayName(cmd) ? (
+                            <span className="font-semibold text-white truncate text-xs">
+                              Cliente: <span className="text-[#ff723f]">{getCustomerDisplayName(cmd)}</span>
                             </span>
-                          )}
+                          ) : null}
                         </div>
 
                         <div className="flex items-center gap-2 text-[10px] text-neutral-400">
@@ -271,10 +271,12 @@ export const ComandasHistoryModal: React.FC<ComandasHistoryModalProps> = ({
                     <span className="font-mono text-base font-bold px-2 py-0.5 border border-[#253257] bg-[#0c1122] text-white rounded inline-block mb-1">
                       Comanda {selectedComanda.number}
                     </span>
-                    {getCustomerDisplayName(selectedComanda) && (
-                      <h3 className="font-editorial text-xl font-bold text-white">
-                        {getCustomerDisplayName(selectedComanda)}
+                    {getCustomerDisplayName(selectedComanda) ? (
+                      <h3 className="text-base font-bold text-white">
+                        Cliente: <span className="text-[#ff723f]">{getCustomerDisplayName(selectedComanda)}</span>
                       </h3>
+                    ) : (
+                      <p className="text-xs text-neutral-400 italic">Cliente não informado</p>
                     )}
                   </div>
 

@@ -486,7 +486,9 @@ export const CaixaView: React.FC = () => {
                               Comanda {cmd.number}
                             </span>
                             {getCustomerDisplayName(cmd) && (
-                              <span className="font-semibold text-sm text-white">{getCustomerDisplayName(cmd)}</span>
+                              <span className="font-semibold text-sm text-white truncate">
+                                Cliente: <span className="text-[#ff723f]">{getCustomerDisplayName(cmd)}</span>
+                              </span>
                             )}
                           </div>
                           <p className="text-[10px] text-neutral-300">
@@ -525,9 +527,13 @@ export const CaixaView: React.FC = () => {
                       <span className="text-[11px] text-neutral-300 uppercase tracking-wider block">
                         Recebimento de Comanda
                       </span>
-                      <h2 className="font-editorial text-2xl font-bold text-white">
-                        Comanda {selectedComandaToPay.number}
-                        {getCustomerDisplayName(selectedComandaToPay) ? ` · ${getCustomerDisplayName(selectedComandaToPay)}` : ''}
+                      <h2 className="font-editorial text-2xl font-bold text-white flex items-center gap-2 flex-wrap">
+                        <span>Comanda {selectedComandaToPay.number}</span>
+                        {getCustomerDisplayName(selectedComandaToPay) && (
+                          <span className="text-base font-normal text-neutral-300">
+                            · Cliente: <strong className="text-white font-bold">{getCustomerDisplayName(selectedComandaToPay)}</strong>
+                          </span>
+                        )}
                       </h2>
                     </div>
 
@@ -921,7 +927,7 @@ export const CaixaView: React.FC = () => {
                 transactions.map((tx) => (
                   <div key={tx.id} className="p-3.5 flex items-center justify-between text-xs hover:bg-[#1a2342]/50">
                     <div className="space-y-0.5">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span
                           className={`w-2 h-2 rounded-full ${
                             tx.type === 'sangria'
@@ -929,7 +935,20 @@ export const CaixaView: React.FC = () => {
                               : 'bg-white'
                           }`}
                         />
-                        <span className="font-semibold text-white">{tx.description}</span>
+                        {tx.comandaNumber ? (
+                          <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white rounded">
+                            Comanda {tx.comandaNumber}
+                          </span>
+                        ) : null}
+                        {tx.customerName && !/^mesa(\s*\d+)?$/i.test(tx.customerName) ? (
+                          <span className="font-semibold text-white">
+                            Cliente: <strong className="text-[#ff723f]">{tx.customerName}</strong>
+                          </span>
+                        ) : (
+                          <span className="font-semibold text-white">
+                            {tx.description.replace(/\s*\(\s*mesa\s*\d*\s*\)/gi, '').replace(/\s*\(\s*comanda\s*\d*\s*\)/gi, '')}
+                          </span>
+                        )}
                         <span className="text-[10px] text-neutral-300 uppercase font-mono px-1.5 py-0.2 border border-[#1f2945] bg-[#1a2342]">
                           {tx.paymentMethod}
                         </span>
@@ -1100,17 +1119,16 @@ export const CaixaView: React.FC = () => {
                         <div>
                           <div className="flex items-center gap-2">
                             {rec.comandaNumber > 0 ? (
-                              <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white">
+                              <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white rounded">
                                 Comanda {rec.comandaNumber}
                               </span>
                             ) : null}
-                            {rec.identifier && !rec.identifier.toLowerCase().startsWith('mesa') && (
-                              <span className="font-bold text-sm text-white">{rec.identifier}</span>
+                            {rec.customerName && !/^mesa(\s*\d+)?$/i.test(rec.customerName) && (
+                              <span className="font-semibold text-white text-xs">
+                                Cliente: <strong className="text-[#ff723f]">{rec.customerName}</strong>
+                              </span>
                             )}
                           </div>
-                          {rec.customerName && !rec.customerName.toLowerCase().startsWith('mesa') && (
-                            <p className="text-xs text-neutral-300 mt-0.5">Cliente: {rec.customerName}</p>
-                          )}
                           <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
                             {new Date(rec.createdAt).toLocaleString('pt-BR')}
                           </p>
