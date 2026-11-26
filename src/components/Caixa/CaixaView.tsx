@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Comanda, PaymentMethod, PaymentSplit, EstablishmentReceipt } from '../../types';
 import { CATEGORY_LABELS } from '../../data/initialData';
@@ -24,6 +24,8 @@ import {
   ShieldCheck,
   Search,
   Calendar,
+  ListFilter,
+  ChevronLeft,
 } from 'lucide-react';
 
 export const CaixaView: React.FC = () => {
@@ -46,6 +48,8 @@ export const CaixaView: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<'comandas' | 'balcao' | 'movimentacoes' | 'vias_arquivo' | 'fechamento'>('comandas');
   const [selectedComandaToPay, setSelectedComandaToPay] = useState<Comanda | null>(null);
+  const [mobileCaixaTab, setMobileCaixaTab] = useState<'list' | 'pagamento'>('list');
+  const paymentPanelRef = useRef<HTMLDivElement>(null);
   const [openCashAmount, setOpenCashAmount] = useState<string>('0.00');
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState<boolean>(false);
 
@@ -180,6 +184,17 @@ export const CaixaView: React.FC = () => {
     };
   }, [archiveReceiptToView]);
 
+  // Seleção direta de comanda para recebimento com auto-scroll no mobile
+  const handleSelectComandaToPay = (cmd: Comanda) => {
+    setSelectedComandaToPay(cmd);
+    setCashAmountReceived('');
+    setIsSplitPayment(false);
+    setMobileCaixaTab('pagamento');
+    setTimeout(() => {
+      paymentPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 40);
+  };
+
   // Handle Checkout of Comanda
   const handleConfirmComandaPayment = () => {
     if (!selectedComandaToPay) return;
@@ -211,6 +226,7 @@ export const CaixaView: React.FC = () => {
     setSelectedComandaToPay(null);
     setCashAmountReceived('');
     setIsSplitPayment(false);
+    setMobileCaixaTab('list');
   };
 
   // Direct sale helper functions
@@ -447,81 +463,120 @@ export const CaixaView: React.FC = () => {
 
         {/* TAB 1: FECHAR COMANDAS */}
         {activeTab === 'comandas' && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* List of open/fechando comandas */}
-            <div className="lg:col-span-5 space-y-3">
-              <h3 className="text-xs uppercase tracking-wider font-bold text-neutral-300">
-                Comandas Pendentes
-              </h3>
+          <div className="space-y-4">
+            {/* Mobile View Switcher (Em telas de celular/tablet para abrir direto a comanda ao clicar) */}
+            <div className="lg:hidden flex items-center bg-[#13192f] border border-[#1f2945] p-1 rounded-xl shadow-sm">
+              <button
+                type="button"
+                onClick={() => setMobileCaixaTab('list')}
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+                  mobileCaixaTab === 'list'
+                    ? 'bg-[#ff5a1f] text-white font-bold shadow-md shadow-[#ff5a1f]/30'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                <ListFilter className="w-3.5 h-3.5" />
+                <span>Lista de Contas ({pendingComandas.length})</span>
+              </button>
 
-              {pendingComandas.length === 0 ? (
-                <div className="p-8 text-center border border-[#1f2945] bg-[#13192f] text-neutral-300 space-y-2">
-                  <CheckCircle2 className="w-8 h-8 mx-auto text-white" />
-                  <p className="text-xs text-white font-medium">Todas as contas estão pagas</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {pendingComandas.map((cmd) => {
-                    const isSelected = selectedComandaToPay?.id === cmd.id;
-                    const sub = cmd.items.reduce((acc, i) => acc + i.unitPrice * i.quantity, 0);
-                    const tot = cmd.includeServiceCharge ? sub + (sub * cmd.serviceChargePercent) / 100 : sub;
-
-                    return (
-                      <div
-                        key={cmd.id}
-                        onClick={() => {
-                          setSelectedComandaToPay(cmd);
-                          setCashAmountReceived('');
-                          setIsSplitPayment(false);
-                        }}
-                        className={`p-4 border transition-all cursor-pointer flex items-center justify-between rounded-lg ${
-                          isSelected
-                            ? 'bg-[#1a2342] border-[#ff5a1f] ring-1 ring-[#ff5a1f]/40'
-                            : 'bg-[#13192f] border-[#1f2945] hover:border-[#253257]'
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white rounded">
-                              Comanda {cmd.number}
-                            </span>
-                            {getCustomerDisplayName(cmd) && (
-                              <span className="font-semibold text-sm text-white truncate">
-                                Cliente: <span className="text-[#ff723f]">{getCustomerDisplayName(cmd)}</span>
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-neutral-300">
-                            {cmd.items.length} itens consumidos
-                          </p>
-                        </div>
-
-                        <div className="text-right">
-                          <span className="text-base font-bold text-white block font-mono">
-                            {formatPrice(tot)}
-                          </span>
-                          <span
-                            className={`text-[10px] uppercase font-bold px-2 py-0.5 border rounded ${
-                              cmd.status === 'fechando'
-                                ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f]'
-                                : 'bg-[#1a2342] text-neutral-300 border-[#253257]'
-                            }`}
-                          >
-                            {cmd.status === 'fechando' ? 'Pediu a Conta' : 'Aberta'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <button
+                type="button"
+                onClick={() => setMobileCaixaTab('pagamento')}
+                disabled={!selectedComandaToPay}
+                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+                  mobileCaixaTab === 'pagamento'
+                    ? 'bg-[#ff5a1f] text-white font-bold shadow-md shadow-[#ff5a1f]/30'
+                    : 'text-neutral-400 hover:text-white'
+                } ${!selectedComandaToPay ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <CreditCard className="w-3.5 h-3.5" />
+                <span>{selectedComandaToPay ? `Comanda ${selectedComandaToPay.number} (Receber)` : 'Receber'}</span>
+              </button>
             </div>
 
-            {/* Payment Settlement Pane */}
-            <div className="lg:col-span-7">
-              {selectedComandaToPay ? (
-                <div className="bg-[#13192f] border border-[#1f2945] p-6 space-y-6 rounded-xl shadow-sm">
-                  {/* Header of selected */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* List of open/fechando comandas */}
+              <div className={`lg:col-span-5 space-y-3 ${mobileCaixaTab === 'pagamento' ? 'hidden lg:block' : 'block'}`}>
+                <h3 className="text-xs uppercase tracking-wider font-bold text-neutral-300">
+                  Comandas Pendentes
+                </h3>
+
+                {pendingComandas.length === 0 ? (
+                  <div className="p-8 text-center border border-[#1f2945] bg-[#13192f] text-neutral-300 space-y-2">
+                    <CheckCircle2 className="w-8 h-8 mx-auto text-white" />
+                    <p className="text-xs text-white font-medium">Todas as contas estão pagas</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {pendingComandas.map((cmd) => {
+                      const isSelected = selectedComandaToPay?.id === cmd.id;
+                      const sub = cmd.items.reduce((acc, i) => acc + i.unitPrice * i.quantity, 0);
+                      const tot = cmd.includeServiceCharge ? sub + (sub * cmd.serviceChargePercent) / 100 : sub;
+
+                      return (
+                        <div
+                          key={cmd.id}
+                          onClick={() => handleSelectComandaToPay(cmd)}
+                          className={`p-4 border transition-all cursor-pointer flex items-center justify-between rounded-lg ${
+                            isSelected
+                              ? 'bg-[#1a2342] border-[#ff5a1f] ring-1 ring-[#ff5a1f]/40'
+                              : 'bg-[#13192f] border-[#1f2945] hover:border-[#253257]'
+                          }`}
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs font-bold px-1.5 py-0.5 bg-[#0c1122] border border-[#253257] text-white rounded">
+                                Comanda {cmd.number}
+                              </span>
+                              {getCustomerDisplayName(cmd) && (
+                                <span className="font-semibold text-sm text-white truncate">
+                                  Cliente: <span className="text-[#ff723f]">{getCustomerDisplayName(cmd)}</span>
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-neutral-300">
+                              {cmd.items.length} itens consumidos
+                            </p>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="text-base font-bold text-white block font-mono">
+                              {formatPrice(tot)}
+                            </span>
+                            <span
+                              className={`text-[10px] uppercase font-bold px-2 py-0.5 border rounded ${
+                                cmd.status === 'fechando'
+                                  ? 'bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold border-[#ff5a1f]'
+                                  : 'bg-[#1a2342] text-neutral-300 border-[#253257]'
+                              }`}
+                            >
+                              {cmd.status === 'fechando' ? 'Pediu a Conta' : 'Aberta'}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Payment Settlement Pane */}
+              <div ref={paymentPanelRef} className={`lg:col-span-7 ${mobileCaixaTab === 'list' ? 'hidden lg:block' : 'block'}`}>
+                {selectedComandaToPay ? (
+                  <div className="bg-[#13192f] border border-[#1f2945] p-5 sm:p-6 space-y-6 rounded-xl shadow-sm">
+                    {/* Botão voltar no celular */}
+                    <div className="lg:hidden pb-1">
+                      <button
+                        type="button"
+                        onClick={() => setMobileCaixaTab('list')}
+                        className="inline-flex items-center gap-1.5 text-xs font-bold text-neutral-300 hover:text-white py-1.5 px-3 bg-[#1a2342] border border-[#253257] rounded-lg cursor-pointer"
+                      >
+                        <ChevronLeft className="w-4 h-4 text-[#ff5a1f]" />
+                        <span>Voltar para Lista de Contas</span>
+                      </button>
+                    </div>
+
+                    {/* Header of selected */}
                   <div className="pb-4 border-b border-[#1f2945] flex justify-between items-start">
                     <div>
                       <span className="text-[11px] text-neutral-300 uppercase tracking-wider block">
@@ -731,7 +786,8 @@ export const CaixaView: React.FC = () => {
               )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* TAB 2: VENDA RÁPIDA DE BALCÃO */}
         {activeTab === 'balcao' && (
