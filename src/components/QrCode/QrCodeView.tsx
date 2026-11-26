@@ -373,7 +373,7 @@ export const QrCodeView: React.FC = () => {
                   Cardápio Digital de Coquetéis
                 </p>
                 <p className="text-[11px] text-neutral-300 leading-snug">
-                  Aponte a câmera do seu smartphone para conferir a carta completa de coquetéis autorais, doses e valores.
+                  Aponte a câmera do seu smartphone para conferir a carta completa de coquetéis autorais e valores.
                 </p>
               </div>
 
@@ -414,7 +414,7 @@ export const QrCodeView: React.FC = () => {
                 Cardápio Digital de Coquetéis
               </h3>
               <p className="text-xs text-neutral-800 max-w-xs mx-auto leading-relaxed">
-                Abra a câmera do seu smartphone e aponte para o QR Code acima para consultar nossos coquetéis, receitas exclusivas, doses e valores.
+                Abra a câmera do seu smartphone e aponte para o QR Code acima para consultar nossos coquetéis, receitas exclusivas e valores.
               </p>
             </div>
 

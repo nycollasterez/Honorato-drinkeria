@@ -32,8 +32,8 @@ export const CardapioView: React.FC = () => {
       }),
     ];
 
-    // Preserved categories if products exist
-    const otherKeys: ProductCategory[] = ['doses', 'cervejas', 'vinhos', 'petiscos'];
+    // Preserved categories if products exist (doses removidas a pedido do cliente)
+    const otherKeys: ProductCategory[] = ['cervejas', 'vinhos', 'petiscos'];
     if (Array.isArray(products)) {
       otherKeys.forEach((k) => {
         if (products.some((p) => p && p.category === k)) {
@@ -52,6 +52,8 @@ export const CardapioView: React.FC = () => {
     if (!Array.isArray(products)) return [];
     return products.filter((item) => {
       if (!item) return false;
+      // Requisito: Tirar doses e destilados do cardápio
+      if (item.category === 'doses') return false;
       if (selectedCategory !== 'all' && item.category !== selectedCategory) {
         return false;
       }
@@ -133,7 +135,7 @@ export const CardapioView: React.FC = () => {
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
             <input
               type="text"
-              placeholder="Buscar drink, ingrediente, destilado..."
+              placeholder="Buscar drink ou coquetel..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-[#13192f] border border-[#253257] pl-9 pr-9 py-2 text-xs sm:text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-[#ff5a1f] rounded-lg transition-colors"
@@ -223,13 +225,6 @@ export const CardapioView: React.FC = () => {
                       </span>
                     </div>
 
-                    {/* Badge de Volume */}
-                    {prod.volume && (
-                      <div className="hidden sm:block absolute bottom-2 left-2 text-[10px] text-neutral-300 bg-[#0c1122]/85 backdrop-blur-sm px-2 py-0.5 font-mono border border-[#1f2945] rounded">
-                        {prod.volume}
-                      </div>
-                    )}
-
                     {/* Indicador de esgotado */}
                     {!prod.isAvailable && (
                       <div className="absolute inset-0 bg-[#0c1122]/90 flex items-center justify-center">
@@ -259,11 +254,8 @@ export const CardapioView: React.FC = () => {
                       </p>
                     </div>
 
-                    <div className="pt-1.5 sm:pt-2 border-t border-[#1f2945] flex items-center justify-between text-[10px] sm:text-xs">
-                      <span className="hidden sm:inline text-[11px] text-[#8ba7ff]">
-                        {prod.alcoholContent || ''}
-                      </span>
-                      <span className="text-[9px] sm:text-[10px] text-neutral-400 uppercase tracking-wider group-hover:text-[#ff5a1f] transition-colors flex items-center gap-1 font-semibold w-full sm:w-auto justify-end">
+                    <div className="pt-1.5 sm:pt-2 border-t border-[#1f2945] flex items-center justify-end text-[10px] sm:text-xs">
+                      <span className="text-[9px] sm:text-[10px] text-neutral-400 uppercase tracking-wider group-hover:text-[#ff5a1f] transition-colors flex items-center gap-1 font-semibold">
                         <span>Ver detalhes</span>
                         <ChevronRight className="w-3 h-3" />
                       </span>
@@ -336,32 +328,6 @@ export const CardapioView: React.FC = () => {
                   {activeModalProduct.description}
                 </p>
               </div>
-
-              {/* Specs */}
-              <div className="grid grid-cols-2 gap-2 py-2.5 border-y border-[#1f2945] text-xs text-neutral-300">
-                <div>
-                  <span className="block text-[10px] uppercase tracking-wider text-neutral-400">Volume / Taça</span>
-                  <span className="text-white font-medium">{activeModalProduct.volume || 'Dose'}</span>
-                </div>
-                <div>
-                  <span className="block text-[10px] uppercase tracking-wider text-neutral-400">Teor Alcoólico</span>
-                  <span className="text-white font-medium">{activeModalProduct.alcoholContent || 'N/A'}</span>
-                </div>
-              </div>
-
-              {/* Ingredients */}
-              {activeModalProduct.ingredients && (
-                <div className="text-xs space-y-1.5">
-                  <span className="text-[10px] uppercase font-semibold text-[#ff5a1f] block tracking-wider">
-                    Composição & Ingredientes:
-                  </span>
-                  <p className="text-neutral-200 leading-relaxed">
-                    {Array.isArray(activeModalProduct.ingredients)
-                      ? activeModalProduct.ingredients.join(' · ')
-                      : String(activeModalProduct.ingredients)}
-                  </p>
-                </div>
-              )}
 
               {/* Tasting notes */}
               {activeModalProduct.tastingNotes && (

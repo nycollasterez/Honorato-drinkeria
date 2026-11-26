@@ -234,15 +234,6 @@ export const ComandasView: React.FC = () => {
     setIsCancelModalOpen(false);
   };
 
-  const presetObservations = [
-    'Sem gelo',
-    'Gelo extra',
-    'Pouco doce',
-    'Sem canudo',
-    'Trocar Gin por Vodka',
-    'Bem gelado',
-  ];
-
   return (
     <div className="min-h-[calc(100vh-64px)] bg-[#0c1122] text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -960,36 +951,17 @@ export const ComandasView: React.FC = () => {
                 </div>
               </div>
 
-              {/* Quick Observation Presets */}
+              {/* Observação personalizada */}
               <div>
-                <span className="block text-neutral-300 mb-1.5 font-medium">
-                  Observações rápidas:
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {presetObservations.map((obs) => (
-                    <button
-                      key={obs}
-                      type="button"
-                      onClick={() =>
-                        setItemNotes((prev) =>
-                          prev ? `${prev}, ${obs}` : obs
-                        )
-                      }
-                      className="px-2 py-1 text-[11px] border border-[#1f2945] bg-[#1a2342] hover:border-[#303f6b] text-neutral-300 rounded"
-                    >
-                      + {obs}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
+                <label className="block text-neutral-300 mb-1.5 font-medium">
+                  Observação:
+                </label>
                 <input
                   type="text"
-                  placeholder="Observação personalizada..."
+                  placeholder="Observação personalizada (ex: pouco doce, sem gelo)..."
                   value={itemNotes}
                   onChange={(e) => setItemNotes(e.target.value)}
-                  className="w-full bg-[#1a2342] border border-[#253257] p-2 text-white placeholder-neutral-400 rounded focus:outline-none focus:border-[#ff5a1f]"
+                  className="w-full bg-[#1a2342] border border-[#253257] p-2.5 text-xs text-white placeholder-neutral-400 rounded focus:outline-none focus:border-[#ff5a1f]"
                 />
               </div>
 
