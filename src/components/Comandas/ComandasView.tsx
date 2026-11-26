@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { Comanda, ComandaStatus, Product } from '../../types';
 import { CATEGORY_LABELS } from '../../data/initialData';
@@ -20,6 +20,8 @@ import {
   DollarSign,
   AlertTriangle,
   Minus,
+  ArrowLeft,
+  ListFilter,
 } from 'lucide-react';
 
 export const ComandasView: React.FC = () => {
@@ -68,6 +70,18 @@ export const ComandasView: React.FC = () => {
     if (val === undefined || val === null) return 'R$ 0,00';
     const num = typeof val === 'number' ? val : parseFloat(String(val).replace(',', '.')) || 0;
     return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  // Mobile navigation & scroll reference
+  const detailPanelRef = useRef<HTMLDivElement>(null);
+  const [mobileTab, setMobileTab] = useState<'list' | 'detail'>('list');
+
+  const handleSelectComanda = (cmdId: string) => {
+    setSelectedComandaId(cmdId);
+    setMobileTab('detail');
+    setTimeout(() => {
+      detailPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 40);
   };
 
   // Garante que "Mesa" NUNCA seja exibido como nome de cliente
@@ -181,6 +195,10 @@ export const ComandasView: React.FC = () => {
       setNewNotes('');
       setIsNewComandaModalOpen(false);
       setSelectedComandaId(created.id);
+      setMobileTab('detail');
+      setTimeout(() => {
+        detailPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 40);
     } catch (err: any) {
       alert(err.message || 'Erro ao abrir comanda');
     }
@@ -264,17 +282,47 @@ export const ComandasView: React.FC = () => {
           </div>
         </div>
 
+        {/* Mobile View Switcher (Em telas mobile/tablet para alternar rapidamente entre a lista e a comanda aberta) */}
+        <div className="lg:hidden flex items-center bg-[#13192f] border border-[#1f2945] p-1 rounded-xl shadow-sm">
+          <button
+            type="button"
+            onClick={() => setMobileTab('list')}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+              mobileTab === 'list'
+                ? 'bg-[#ff5a1f] text-white font-bold shadow-md shadow-[#ff5a1f]/30'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <ListFilter className="w-3.5 h-3.5" />
+            <span>Lista de Comandas ({filteredComandas.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMobileTab('detail')}
+            disabled={!activeComanda}
+            className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer ${
+              mobileTab === 'detail'
+                ? 'bg-[#ff5a1f] text-white font-bold shadow-md shadow-[#ff5a1f]/30'
+                : 'text-neutral-400 hover:text-white'
+            } ${!activeComanda ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>{activeComanda ? `Comanda ${activeComanda.number} Aberta` : 'Detalhes'}</span>
+          </button>
+        </div>
+
         {/* Layout: Master List (Left) + Detail & Order Launcher (Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* LEFT: Comandas Grid / Selector (5 cols on lg) */}
-          <div className="lg:col-span-5 space-y-4">
+          <div className={`space-y-4 lg:col-span-5 ${mobileTab === 'detail' ? 'hidden lg:block' : 'block'}`}>
             {/* Search & Status Filters */}
             <div className="space-y-3 bg-[#13192f] p-4 border border-[#1f2945] rounded-xl shadow-sm">
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-300" />
                 <input
                   type="text"
-                  placeholder="Buscar comanda, mesa ou cliente..."
+                  placeholder="Buscar comanda ou cliente..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full bg-[#1a2342] border border-[#253257] pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-400 rounded focus:outline-none focus:border-[#ff5a1f]"
@@ -328,11 +376,11 @@ export const ComandasView: React.FC = () => {
                   return (
                     <div
                       key={cmd.id}
-                      onClick={() => setSelectedComandaId(cmd.id)}
-                      className={`p-4 border transition-all rounded-lg cursor-pointer flex items-center justify-between gap-3 ${
+                      onClick={() => handleSelectComanda(cmd.id)}
+                      className={`p-4 border transition-all rounded-lg cursor-pointer flex items-center justify-between gap-3 group ${
                         isSelected
-                          ? 'bg-[#1a2342] border-[#ff5a1f] ring-1 ring-[#ff5a1f]/40'
-                          : 'bg-[#13192f] border-[#1f2945] hover:border-[#253257]'
+                          ? 'bg-[#1a2342] border-[#ff5a1f] ring-1 ring-[#ff5a1f]/40 shadow-md shadow-[#ff5a1f]/10'
+                          : 'bg-[#13192f] border-[#1f2945] hover:border-[#253257] hover:bg-[#161e38]'
                       }`}
                     >
                       <div className="space-y-1 min-w-0">
@@ -354,29 +402,32 @@ export const ComandasView: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="text-right shrink-0">
-                        <span className="text-sm font-bold text-white block">
-                          {formatPrice(cmdTotal)}
-                        </span>
-                        <span
-                          className={`inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 mt-1 border rounded ${
-                            cmd.status === 'aberta'
-                              ? 'border-[#303f6b] bg-navy-900 text-white'
+                      <div className="flex items-center gap-2.5 shrink-0">
+                        <div className="text-right">
+                          <span className="text-sm font-bold text-white block">
+                            {formatPrice(cmdTotal)}
+                          </span>
+                          <span
+                            className={`inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 mt-1 border rounded ${
+                              cmd.status === 'aberta'
+                                ? 'border-[#303f6b] bg-navy-900 text-white'
+                                : cmd.status === 'fechando'
+                                ? 'border-[#ff5a1f] bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold'
+                                : cmd.status === 'cancelada'
+                                ? 'border-rose-800 bg-rose-950/60 text-rose-300'
+                                : 'border-emerald-800 bg-emerald-950/60 text-emerald-300'
+                            }`}
+                          >
+                            {cmd.status === 'aberta'
+                              ? 'Aberta'
                               : cmd.status === 'fechando'
-                              ? 'border-[#ff5a1f] bg-[#ff5a1f] text-white shadow-md shadow-[#ff5a1f]/30 font-bold'
+                              ? 'Pediu Conta'
                               : cmd.status === 'cancelada'
-                              ? 'border-rose-800 bg-rose-950/60 text-rose-300'
-                              : 'border-emerald-800 bg-emerald-950/60 text-emerald-300'
-                          }`}
-                        >
-                          {cmd.status === 'aberta'
-                            ? 'Aberta'
-                            : cmd.status === 'fechando'
-                            ? 'Pediu Conta'
-                            : cmd.status === 'cancelada'
-                            ? 'Cancelada'
-                            : 'Paga'}
-                        </span>
+                              ? 'Cancelada'
+                              : 'Paga'}
+                          </span>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-neutral-400 group-hover:text-white group-hover:translate-x-0.5 transition-all" />
                       </div>
                     </div>
                   );
@@ -386,7 +437,27 @@ export const ComandasView: React.FC = () => {
           </div>
 
           {/* RIGHT: Active Comanda Detailed View (7 cols on lg) */}
-          <div className="lg:col-span-7">
+          <div
+            ref={detailPanelRef}
+            className={`lg:col-span-7 ${mobileTab === 'list' ? 'hidden lg:block' : 'block'}`}
+          >
+            {/* Mobile Header: Voltar para Lista */}
+            <div className="lg:hidden mb-3">
+              <button
+                type="button"
+                onClick={() => setMobileTab('list')}
+                className="w-full py-2.5 px-3.5 bg-[#13192f] hover:bg-[#1a2342] border border-[#253257] text-white rounded-xl text-xs font-bold flex items-center justify-between transition-colors shadow-sm cursor-pointer"
+              >
+                <div className="flex items-center gap-2 text-[#ff5a1f]">
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Voltar para Lista de Comandas</span>
+                </div>
+                <span className="text-[11px] font-mono text-neutral-400 font-normal">
+                  {filteredComandas.length} disponíveis
+                </span>
+              </button>
+            </div>
+
             {activeComanda ? (
               <div className="bg-[#13192f] border border-[#1f2945] p-5 sm:p-6 space-y-6 rounded-xl shadow-sm">
                 {/* Header Info */}
